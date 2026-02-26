@@ -27,7 +27,7 @@ cd HotelBookingApp
 ### 2️⃣ Run the backend
 
 ```bash
-cd backend
+cd backend/HotelBookingApp.Api
 dotnet run
 ```
 
