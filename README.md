@@ -20,7 +20,7 @@ A full-stack hotel booking system.
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/Ritsumel/HotelBookingApp.git
+git clone https://github.com/Ritsumel/MME-Hotels.git
 cd HotelBookingApp
 ```
 
