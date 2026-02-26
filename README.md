@@ -1,4 +1,4 @@
-# 🏨 HotelBookingApp
+# 🏨 MME Hotels
 
 A full-stack hotel booking system.
 
