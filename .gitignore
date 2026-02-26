@@ -1,0 +1,17 @@
+# ===== Backend (.NET) =====
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# ===== Frontend (Node/React) =====
+node_modules/
+dist/
+build/
+
+# ===== Common =====
+.env
+*.log
+.DS_Store
+Thumbs.db
