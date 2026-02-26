@@ -31,3 +31,4 @@ C:\Users\miche\OneDrive\바탕 화면\FRONTEND-2025\BACKEND-2\HotelBookingApp\Ba
 C:\Users\miche\OneDrive\바탕 화면\FRONTEND-2025\BACKEND-2\HotelBookingApp\Backend\HotelBookingApp.Api\obj\Debug\net9.0\HotelBookingApp.Api.pdb
 C:\Users\miche\OneDrive\바탕 화면\FRONTEND-2025\BACKEND-2\HotelBookingApp\Backend\HotelBookingApp.Api\obj\Debug\net9.0\HotelBookingApp.Api.genruntimeconfig.cache
 C:\Users\miche\OneDrive\바탕 화면\FRONTEND-2025\BACKEND-2\HotelBookingApp\Backend\HotelBookingApp.Api\obj\Debug\net9.0\ref\HotelBookingApp.Api.dll
+C:\Users\miche\OneDrive\바탕 화면\FRONTEND-2025\BACKEND-2\HotelBookingApp\Backend\HotelBookingApp.Api\obj\Debug\net9.0\HotelBookingApp.Api.sourcelink.json
