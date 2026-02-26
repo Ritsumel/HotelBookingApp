@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "6NfiT6fWkEY=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\miche\\OneDrive\\바탕 화면\\FRONTEND-2025\\BACKEND-2\\HotelBookingApp\\Backend\\HotelBookingApp.Api\\HotelBookingApp.Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\miche\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.13\\microsoft.aspnetcore.openapi.9.0.13.nupkg.sha512",
+    "C:\\Users\\miche\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
