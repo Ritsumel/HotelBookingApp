@@ -31,8 +31,11 @@ cd backend
 dotnet run
 ```
 
-API runs on: http://localhost:8000
-Test Example Endpoint: http://localhost:8000/weatherforecast
+API runs on:
+http://localhost:8000
+
+Test example endpoint:
+http://localhost:8000/weatherforecast
 
 ### 3️⃣ Run the frontend
 
@@ -42,7 +45,8 @@ npm install
 npm run dev
 ```
 
-Frontend runs on: http://localhost:5173
+Frontend runs on: 
+http://localhost:5173
 
 ---
 
