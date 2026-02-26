@@ -48,6 +48,6 @@ Frontend runs on: http://localhost:5173
 
 ## 👥 Team Members
 
-- Michelle Lee – [GitHub](https://github.com/Ritsumel)
-- Martin Johansson – [GitHub](https://github.com/mfjohnsson)
-- Elisa Brenet – [GitHub](https://github.com/elisabrenet)
+- [Michelle Lee](https://github.com/ritsumel)
+- [Martin Johansson](https://github.com/mfjohnsson)
+- [Elisa Brenet](https://github.com/elisabrenet)
