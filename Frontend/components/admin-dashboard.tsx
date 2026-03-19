@@ -1,5 +1,7 @@
 'use client';
 
+/* Följande imports används av bortkommenterad kod — 
+   aktiveras när POST /api/hotels och Room-model finns i backend */
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -39,21 +41,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  hotels as initialHotels,
-  type Hotel as HotelType,
-} from '@/lib/hotel-data';
+import { getHotels, type Hotel as HotelType } from '@/lib/hotel-data';
 
 export function AdminDashboard() {
   const router = useRouter();
-  const [hotelList, setHotelList] = useState<HotelType[]>(initialHotels);
+  const [hotelList, setHotelList] = useState<HotelType[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  /*   const [showAddDialog, setShowAddDialog] = useState(false); */
   const [deleteTarget, setDeleteTarget] = useState<HotelType | null>(null);
-  const [expandedHotel, setExpandedHotel] = useState<string | null>(null);
+  const [expandedHotel, setExpandedHotel] = useState<number | null>(null);
 
+  /* aktivera när POST /api/hotels finns i backend */
   // Form state for adding a new hotel
-  const [newHotel, setNewHotel] = useState({
+  /*  const [newHotel, setNewHotel] = useState({
     name: '',
     city: '',
     address: '',
@@ -61,7 +61,11 @@ export function AdminDashboard() {
     pricePerNight: '',
     rating: '',
     amenities: '',
-  });
+  }); */
+
+  useEffect(() => {
+    getHotels().then(setHotelList);
+  }, []);
 
   const checkAuth = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -93,13 +97,17 @@ export function AdminDashboard() {
     router.push('/');
   }
 
-  function handleDeleteHotel() {
+  /* handleDeleteHotel — behöver skrivas om när DELETE /api/hotels/{id} finns i backend.
+   Ska skicka delete-request till API istället för att uppdatera local state */
+  /*   function handleDeleteHotel() {
     if (!deleteTarget) return;
     setHotelList((prev) => prev.filter((h) => h.id !== deleteTarget.id));
     setDeleteTarget(null);
-  }
+  } */
 
-  function handleAddHotel(e: React.FormEvent) {
+  /* handleAddHotel — behöver skrivas om när POST /api/hotels finns i backend.
+   Ska skicka data till API istället för att uppdatera local state */
+  /*   function handleAddHotel(e: React.FormEvent) {
     e.preventDefault();
 
     const hotel: HotelType = {
@@ -160,15 +168,17 @@ export function AdminDashboard() {
       amenities: '',
     });
     setShowAddDialog(false);
-  }
+  } */
 
   const filteredHotels = hotelList.filter(
     (hotel) =>
       hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      hotel.city.toLowerCase().includes(searchQuery.toLowerCase()),
+      hotel.cityName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const totalRooms = hotelList.reduce((sum, h) => sum + h.rooms.length, 0);
+  /* Aktivera när Room-Model finns i backend */
+  /*  const totalRooms = hotelList.reduce((sum, h) => sum + h.rooms.length, 0); */
+  const totalRooms = 0;
 
   return (
     <div className='min-h-screen bg-background'>
@@ -221,7 +231,7 @@ export function AdminDashboard() {
               Cities
             </p>
             <p className='mt-1 font-serif text-2xl font-bold text-foreground'>
-              {new Set(hotelList.map((h) => h.city)).size}
+              {new Set(hotelList.map((h) => h.cityName)).size}
             </p>
           </div>
           <div className='rounded-xl border border-border bg-card p-4'>
@@ -266,6 +276,7 @@ export function AdminDashboard() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className='pl-9'
               />
+
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
@@ -276,13 +287,16 @@ export function AdminDashboard() {
                 </button>
               )}
             </div>
-            <Button
+
+            {/* Add Hotel-knapp — aktivera när POST /api/hotels finns i backend */}
+
+            {/*  <Button
               className='gap-2 bg-foreground text-background hover:bg-foreground/90'
               onClick={() => setShowAddDialog(true)}
             >
               <Plus className='h-4 w-4' />
               <span className='hidden sm:inline'>Add Hotel</span>
-            </Button>
+            </Button>  */}
           </div>
         </div>
 
@@ -302,7 +316,7 @@ export function AdminDashboard() {
               {!searchQuery && (
                 <Button
                   className='mt-4 gap-2 bg-foreground text-background hover:bg-foreground/90'
-                  onClick={() => setShowAddDialog(true)}
+                  /*  onClick={() => setShowAddDialog(true)} */
                 >
                   <Plus className='h-4 w-4' />
                   Add Hotel
@@ -333,7 +347,7 @@ export function AdminDashboard() {
                         </h3>
                         <p className='mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground'>
                           <MapPin className='h-3.5 w-3.5' />
-                          {hotel.city} &mdash; {hotel.address}
+                          {hotel.cityName} &mdash; {hotel.address}
                         </p>
                       </div>
 
@@ -355,7 +369,7 @@ export function AdminDashboard() {
                     </p>
 
                     <div className='mt-3 flex flex-wrap gap-1.5'>
-                      {hotel.amenities.map((amenity) => (
+                      {hotel.amenities.split(', ').map((amenity) => (
                         <Badge
                           key={amenity}
                           variant='secondary'
@@ -370,7 +384,8 @@ export function AdminDashboard() {
                       <div className='flex items-center gap-4'>
                         <p className='text-sm text-muted-foreground'>
                           <span className='font-semibold text-foreground'>
-                            {hotel.rooms.length}
+                            {/* Aktivera när Room-Model finns i backend */}
+                            {/* {hotel.rooms.length} */}
                           </span>{' '}
                           room types
                         </p>
@@ -424,7 +439,8 @@ export function AdminDashboard() {
                         <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
                           Room Types
                         </p>
-                        {hotel.rooms.map((room) => (
+                        {/* RoomDetails - aktivera närRoom-model och GET /api/rooms finns i backend */}
+                        {/* {hotel.rooms.map((room) => (
                           <div
                             key={room.id}
                             className='flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background p-3'
@@ -445,7 +461,7 @@ export function AdminDashboard() {
                               </span>
                             </p>
                           </div>
-                        ))}
+                        ))} */}
                       </div>
                     )}
                   </div>
@@ -456,8 +472,8 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* Add hotel dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      {/* Add Hotel Dialog — aktivera när POST /api/hotels finns i backend */}
+      {/*   <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
             <DialogTitle className='font-serif text-xl'>
@@ -608,7 +624,7 @@ export function AdminDashboard() {
             </div>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* Delete confirmation */}
       <AlertDialog
@@ -629,7 +645,7 @@ export function AdminDashboard() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteHotel}
+              /*  onClick={handleDeleteHotel} */
               className='bg-destructive text-card hover:bg-destructive/90'
             >
               Remove Hotel

@@ -29,7 +29,11 @@ public class HotelsController : ControllerBase
                 PricePerNight = (int)h.PricePerNight,
                 Image = h.Image,
                 UrlSlug = h.UrlSlug,
-                CityName = h.City!.Name
+                CityName = h.City!.Name,
+                Address = h.Address,
+                Rating = h.Rating,
+                ReviewCount = h.ReviewCount,
+                Amenities = h.Amenities
             })
             .ToList();
 
@@ -50,7 +54,11 @@ public class HotelsController : ControllerBase
                 PricePerNight = (int)h.PricePerNight,
                 Image = h.Image,
                 UrlSlug = h.UrlSlug,
-                CityName = h.City!.Name
+                CityName = h.City!.Name,
+                Address = h.Address,
+                Rating = h.Rating,
+                ReviewCount = h.ReviewCount,
+                Amenities = h.Amenities
             })
             .FirstOrDefault();
 

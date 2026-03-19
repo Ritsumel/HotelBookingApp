@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import type { Hotel, Room } from '@/lib/hotel-data';
+import type { Hotel } from '@/lib/hotel-data';
 
 interface HotelCardProps {
   hotel: Hotel;
@@ -30,9 +30,10 @@ export function HotelCard({
   checkOut,
   guests,
 }: HotelCardProps) {
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [showBooking, setShowBooking] = useState(false);
-  const [isBooked, setIsBooked] = useState(false);
+  /* Aktivera när Room-Model finns i backend */
+  /*const [selectedRoom, setSelectedRoom] = useState<Room | null>(null); 
+    const [showBooking, setShowBooking] = useState(false);
+    const [isBooked, setIsBooked] = useState(false); */
 
   const nights =
     checkIn && checkOut
@@ -45,14 +46,15 @@ export function HotelCard({
         )
       : 1;
 
-  function handleBook() {
+  /* Lägg till när Room-Model finns i backend */
+  /*   function handleBook() {
     setIsBooked(true);
     setTimeout(() => {
       setShowBooking(false);
       setIsBooked(false);
       setSelectedRoom(null);
     }, 2000);
-  }
+  } */
 
   return (
     <>
@@ -94,7 +96,7 @@ export function HotelCard({
             </p>
 
             <div className='mt-3 flex flex-wrap gap-1.5'>
-              {hotel.amenities.map((amenity) => (
+              {hotel.amenities.split(', ').map((amenity) => (
                 <Badge
                   key={amenity}
                   variant='secondary'
@@ -107,7 +109,8 @@ export function HotelCard({
 
             <Separator className='my-4' />
 
-            <div className='flex flex-col gap-3'>
+            {/* Rumssektion — aktivera när Room-model finns i backend */}
+            {/*  <div className='flex flex-col gap-3'>
               <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
                 Available Rooms
               </p>
@@ -151,19 +154,20 @@ export function HotelCard({
                   </div>
                 </div>
               ))}
-            </div>
+            </div>  */}
           </div>
         </div>
       </article>
 
-      <Dialog open={showBooking} onOpenChange={setShowBooking}>
+      {/* Bokningsmodul - aktivera när Room-model finns i backend */}
+      {/*  <Dialog open={showBooking} onOpenChange={setShowBooking}>
         <DialogContent className='sm:max-w-lg'>
           <DialogHeader>
             <DialogTitle className='font-serif text-xl'>
               Complete Your Reservation
             </DialogTitle>
             <DialogDescription>
-              {hotel.name} &middot; {selectedRoom?.type}
+              {hotel.name} &middot; {{selectedRoom?.type}}
             </DialogDescription>
           </DialogHeader>
 
@@ -185,7 +189,7 @@ export function HotelCard({
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-sm font-semibold text-foreground'>
-                      {selectedRoom?.type}
+                      {{selectedRoom?.type}}
                     </p>
                     <p className='text-xs text-muted-foreground'>
                       {checkIn || 'Select dates'} {' - '}{' '}
@@ -246,7 +250,7 @@ export function HotelCard({
             </div>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 }

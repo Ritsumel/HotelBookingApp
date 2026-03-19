@@ -52,7 +52,11 @@ public class CitiesController : ControllerBase
                     PricePerNight = (int)h.PricePerNight,
                     Image = h.Image,
                     UrlSlug = h.UrlSlug,
-                    CityName = c.Name
+                    CityName = c.Name,
+                    Address = h.Address,
+                    Rating = h.Rating,
+                    ReviewCount = h.ReviewCount,
+                    Amenities = h.Amenities
                 }).ToList()
             })
             .FirstOrDefault();

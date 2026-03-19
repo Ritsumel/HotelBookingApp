@@ -82,6 +82,7 @@ public static class SeedData
         var faker = new Faker("sv");
         var hotels = new List<Hotel>();
 
+
         // Steg 1 — garantera minst 1 hotell per stad
         foreach (var city in cities)
         {
@@ -92,7 +93,14 @@ public static class SeedData
                 PricePerNight = Math.Round(faker.Random.Decimal(500, 4000) / 100) * 100,
                 Image = $"https://picsum.photos/seed/{faker.Random.Word()}/800/600",
                 UrlSlug = (city.Name + "-" + faker.PickRandom(hotelTypes)).ToLower().Replace(" ", "-"),
-                CityId = city.Id
+                CityId = city.Id,
+                Address = faker.Address.StreetName() + " " + faker.Random.Int(1, 99),
+                Rating = Math.Round(faker.Random.Double(3.5, 5.0), 1),
+                ReviewCount = faker.Random.Int(50, 2000),
+                Amenities = string.Join(", ", faker.PickRandom(
+                ["Spa", "Restaurant", "Bar", "Gym", "Pool", "Wi-Fi",
+                    "Parking", "Concierge", "Room Service", "Sauna" ],
+                faker.Random.Int(3, 6)))
             });
         }
 
@@ -107,9 +115,17 @@ public static class SeedData
                 PricePerNight = Math.Round(faker.Random.Decimal(500, 4000) / 100) * 100,
                 Image = $"https://picsum.photos/seed/{faker.Random.Word()}/800/600",
                 UrlSlug = (stad.Name + "-" + faker.PickRandom(hotelTypes)).ToLower().Replace(" ", "-"),
-                CityId = stad.Id
+                CityId = stad.Id,
+                Address = faker.Address.StreetName() + " " + faker.Random.Int(1, 99),
+                Rating = Math.Round(faker.Random.Double(3.5, 5.0), 1),
+                ReviewCount = faker.Random.Int(50, 2000),
+                Amenities = string.Join(", ", faker.PickRandom(
+                [ "Spa", "Restaurant", "Bar", "Gym", "Pool", "Wi-Fi",
+                    "Parking", "Concierge", "Room Service", "Sauna" ],
+                faker.Random.Int(3, 6)))
             });
         }
+
 
         context.Hotels.AddRange(hotels);
         context.SaveChanges();
