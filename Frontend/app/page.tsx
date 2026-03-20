@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { HeroSearch } from '@/components/hero-search';
 import { DestinationsGrid } from '@/components/destinations-grid';

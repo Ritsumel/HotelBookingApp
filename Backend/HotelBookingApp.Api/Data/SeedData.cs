@@ -1,15 +1,21 @@
 ﻿using Bogus;
 using HotelBookingApp.Api.Models;
+using System.Net.Http;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 
 namespace HotelBookingApp.Api.Data;
 
 public static class SeedData
 {
-    public static void Initialize(AppDbContext context)
+    private static readonly HttpClient _http = new();
+    public static async Task Initialize(AppDbContext context, IConfiguration config)
     {
         if (context.Users.Any() || context.Hotels.Any())
             return;
+
+        var accessKey = config["Unsplash:AccessKey"];
 
         var userFaker = new Faker<User>("sv")
             .RuleFor(u => u.FullName, f => f.Name.FullName())
@@ -30,36 +36,45 @@ public static class SeedData
         context.Users.AddRange(users);
         context.SaveChanges();
 
+        // För att prioritera stader efter storlek 
         var svenskaStäder = new[]
-            {
-                ("Stockholm", 15),
-                ("Göteborg", 12),
-                ("Malmö", 10),
-                ("Uppsala", 4),
-                ("Västerås", 3),
-                ("Örebro", 3),
-                ("Linköping", 3),
-                ("Helsingborg", 3),
-                ("Jönköping", 2),
-                ("Norrköping", 2),
-                ("Lund", 2),
-                ("Umeå", 2),
-                ("Gävle", 1),
-                ("Borås", 1),
-                ("Södertälje", 1),
-                ("Eskilstuna", 1),
-                ("Halmstad", 1),
-                ("Växjö", 1),
-                ("Karlstad", 1),
-                ("Sundsvall", 1)
-            };
 
-        var cities = svenskaStäder.Select(s => new City
+        
         {
-            Name = s.Item1,
-            Image = $"https://picsum.photos/seed/{s.Item1}/800/600",
-            UrlSlug = s.Item1.ToLower().Replace("å", "a").Replace("ä", "a").Replace("ö", "o")
-        }).ToList();
+            ("Stockholm", 15),
+            ("Göteborg", 12),
+            ("Malmö", 10),
+            ("Uppsala", 4),
+            ("Västerås", 3),
+            ("Örebro", 3),
+            ("Linköping", 3),
+            ("Helsingborg", 3),
+            ("Jönköping", 2),
+            ("Norrköping", 2),
+            ("Lund", 2),
+            ("Umeå", 2),
+            ("Gävle", 1),
+            ("Borås", 1),
+            ("Södertälje", 1),
+            ("Eskilstuna", 1),
+            ("Halmstad", 1),
+            ("Växjö", 1),
+            ("Karlstad", 1),
+            ("Sundsvall", 1),
+        };
+
+
+        var cities = new List<City>();
+        foreach (var s in svenskaStäder)
+        {
+            var image = await FetchUnsplashImage($"{s.Item1.Replace("å", "a").Replace("ä", "a").Replace("ö", "o")} city sweden", accessKey);
+            cities.Add(new City
+            {
+                Name = s.Item1,
+                Image = image,
+                UrlSlug = s.Item1.ToLower().Replace("å", "a").Replace("ä", "a").Replace("ö", "o")
+            });
+        }
 
         context.Cities.AddRange(cities);
         context.SaveChanges();
@@ -79,6 +94,15 @@ public static class SeedData
                 "Boutique-hotell med unik karaktär och ombonad atmosfär."
         };
 
+        var hotelImageUrls = new List<string>();
+        for (int i = 0; i < 10; i++)
+        {
+            var img = await FetchUnsplashImage(
+                i % 2 == 0 ? "hotel interior sweden" : "hotel lobby luxury",
+                accessKey);
+            hotelImageUrls.Add(img);
+        }
+
         var faker = new Faker("sv");
         var hotels = new List<Hotel>();
 
@@ -91,7 +115,7 @@ public static class SeedData
                 Name = city.Name + " " + faker.PickRandom(hotelTypes),
                 Description = faker.PickRandom(descriptions),
                 PricePerNight = Math.Round(faker.Random.Decimal(500, 4000) / 100) * 100,
-                Image = $"https://picsum.photos/seed/{faker.Random.Word()}/800/600",
+                Image = faker.PickRandom(hotelImageUrls),
                 UrlSlug = (city.Name + "-" + faker.PickRandom(hotelTypes)).ToLower().Replace(" ", "-"),
                 CityId = city.Id,
                 Address = faker.Address.StreetName() + " " + faker.Random.Int(1, 99),
@@ -113,7 +137,7 @@ public static class SeedData
                 Name = stad.Name + " " + faker.PickRandom(hotelTypes),
                 Description = faker.PickRandom(descriptions),
                 PricePerNight = Math.Round(faker.Random.Decimal(500, 4000) / 100) * 100,
-                Image = $"https://picsum.photos/seed/{faker.Random.Word()}/800/600",
+                Image = faker.PickRandom(hotelImageUrls),
                 UrlSlug = (stad.Name + "-" + faker.PickRandom(hotelTypes)).ToLower().Replace(" ", "-"),
                 CityId = stad.Id,
                 Address = faker.Address.StreetName() + " " + faker.Random.Int(1, 99),
@@ -129,5 +153,20 @@ public static class SeedData
 
         context.Hotels.AddRange(hotels);
         context.SaveChanges();
+    }
+
+    private static async Task<string> FetchUnsplashImage(string query, string accessKey)
+    {
+        try
+        {
+            var url = $"https://api.unsplash.com/photos/random?query={Uri.EscapeDataString(query)}&orientation=landscape&client_id={accessKey}";
+            var response = await _http.GetStringAsync(url);
+            var json = JsonDocument.Parse(response);
+            return json.RootElement.GetProperty("urls").GetProperty("regular").GetString() ?? "";
+        }
+        catch
+        {
+            return "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80";
+        }
     }
 }
