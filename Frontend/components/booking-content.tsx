@@ -1,61 +1,71 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useSearchParams } from "next/navigation"
-import { Search, CalendarDays, Users, SlidersHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Search, CalendarDays, Users, SlidersHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { HotelCard } from "@/components/hotel-card"
-import { hotels } from "@/lib/hotel-data"
-
-const cities = ["All Cities", "Stockholm", "Gothenburg", "Malmo", "Uppsala"]
+} from '@/components/ui/select';
+import { HotelCard } from '@/components/hotel-card';
+import { getHotels, getCities, type Hotel } from '@/lib/hotel-data';
 
 export function BookingContent() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
-  const [city, setCity] = useState(searchParams.get("city") || "All Cities")
-  const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") || "")
-  const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") || "")
-  const [guests, setGuests] = useState(searchParams.get("guests") || "1")
-  const [sortBy, setSortBy] = useState("recommended")
+  const [city, setCity] = useState(searchParams.get('city') || 'All Cities');
+  const [cities, setCities] = useState<string[]>(['All Cities']);
+  const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || '');
+  const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || '');
+  const [guests, setGuests] = useState(searchParams.get('guests') || '1');
+  const [sortBy, setSortBy] = useState('recommended');
+  const [hotelList, setHotelList] = useState<Hotel[]>([]);
 
-  const filteredHotels = hotels
-    .filter((h) => city === "All Cities" || h.city === city)
+  useEffect(() => {
+    getHotels().then(setHotelList);
+  }, []);
+
+  useEffect(() => {
+    getCities().then((data) => {
+      setCities(['All Cities', ...data.map((c) => c.name)]);
+    });
+  }, []);
+
+  const filteredHotels = hotelList
+    .filter((h) => city === 'All Cities' || h.cityName === city)
     .sort((a, b) => {
-      if (sortBy === "price-low") return a.pricePerNight - b.pricePerNight
-      if (sortBy === "price-high") return b.pricePerNight - a.pricePerNight
-      if (sortBy === "rating") return b.rating - a.rating
-      return 0
-    })
+      if (sortBy === 'price-low') return a.pricePerNight - b.pricePerNight;
+      if (sortBy === 'price-high') return b.pricePerNight - a.pricePerNight;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      return 0;
+    });
 
   return (
-    <div className="mx-auto max-w-7xl px-6 pb-24 pt-28">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+    <div className='mx-auto max-w-7xl px-6 pb-24 pt-28'>
+      <div className='mb-8'>
+        <h1 className='font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl'>
           Find Your Stay
         </h1>
-        <p className="mt-2 text-base text-muted-foreground">
+        <p className='mt-2 text-base text-muted-foreground'>
           Browse our hotels across Sweden and book your perfect room.
         </p>
       </div>
 
-      <div className="mb-8 rounded-xl border border-border bg-card p-4">
-        <div className="grid gap-3 md:grid-cols-5">
-          <div className="flex flex-col gap-1.5">
-            <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <Search className="h-3.5 w-3.5" />
+      <div className='mb-8 rounded-xl border border-border bg-card p-4'>
+        <div className='grid gap-3 md:grid-cols-5'>
+          <div className='flex flex-col gap-1.5'>
+            <Label className='flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+              <Search className='h-3.5 w-3.5' />
               City
             </Label>
             <Select value={city} onValueChange={setCity}>
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className='bg-background'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -68,92 +78,92 @@ export function BookingContent() {
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <CalendarDays className="h-3.5 w-3.5" />
+          <div className='flex flex-col gap-1.5'>
+            <Label className='flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+              <CalendarDays className='h-3.5 w-3.5' />
               Check in
             </Label>
             <Input
-              type="date"
+              type='date'
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="bg-background"
+              className='bg-background'
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <CalendarDays className="h-3.5 w-3.5" />
+          <div className='flex flex-col gap-1.5'>
+            <Label className='flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+              <CalendarDays className='h-3.5 w-3.5' />
               Check out
             </Label>
             <Input
-              type="date"
+              type='date'
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="bg-background"
+              className='bg-background'
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <Users className="h-3.5 w-3.5" />
+          <div className='flex flex-col gap-1.5'>
+            <Label className='flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+              <Users className='h-3.5 w-3.5' />
               Guests
             </Label>
             <Select value={guests} onValueChange={setGuests}>
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className='bg-background'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <SelectItem key={n} value={String(n)}>
-                    {n} {n === 1 ? "Guest" : "Guests"}
+                    {n} {n === 1 ? 'Guest' : 'Guests'}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <SlidersHorizontal className="h-3.5 w-3.5" />
+          <div className='flex flex-col gap-1.5'>
+            <Label className='flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+              <SlidersHorizontal className='h-3.5 w-3.5' />
               Sort by
             </Label>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className='bg-background'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="recommended">Recommended</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value='recommended'>Recommended</SelectItem>
+                <SelectItem value='price-low'>Price: Low to High</SelectItem>
+                <SelectItem value='price-high'>Price: High to Low</SelectItem>
+                <SelectItem value='rating'>Highest Rated</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
       </div>
 
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {filteredHotels.length}{" "}
-          {filteredHotels.length === 1 ? "hotel" : "hotels"} found
-          {city !== "All Cities" && ` in ${city}`}
+      <div className='mb-4 flex items-center justify-between'>
+        <p className='text-sm text-muted-foreground'>
+          {filteredHotels.length}{' '}
+          {filteredHotels.length === 1 ? 'hotel' : 'hotels'} found
+          {city !== 'All Cities' && ` in ${city}`}
         </p>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className='flex flex-col gap-6'>
         {filteredHotels.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-20">
-            <p className="font-serif text-xl font-bold text-foreground">
+          <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-card py-20'>
+            <p className='font-serif text-xl font-bold text-foreground'>
               No hotels found
             </p>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className='mt-2 text-sm text-muted-foreground'>
               Try adjusting your search filters.
             </p>
             <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => setCity("All Cities")}
+              variant='outline'
+              className='mt-4'
+              onClick={() => setCity('All Cities')}
             >
               Show all hotels
             </Button>
@@ -171,5 +181,5 @@ export function BookingContent() {
         )}
       </div>
     </div>
-  )
+  );
 }

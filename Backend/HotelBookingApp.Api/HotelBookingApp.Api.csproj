@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.5" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.14" />
@@ -14,6 +15,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.12" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.8" />
   </ItemGroup>
 
