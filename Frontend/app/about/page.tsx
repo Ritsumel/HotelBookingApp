@@ -222,36 +222,80 @@ export default function AboutPage() {
           </h2>
         </div>
 
+        {/* Container för tidslinjen */}
         <div className='relative flex flex-col gap-10'>
+          {/* Den vertikala linjen */}
           <div
-            className='absolute left-6 top-0 bottom-0 w-px bg-border md:left-1/2'
+            className='absolute left-5.75 top-0 bottom-0 w-px bg-muted-foreground/70 md:left-1/2 md:-translate-x-1/2'
             aria-hidden='true'
           />
 
           {timeline.map((item, i) => (
             <div
               key={item.year}
-              className={`relative flex flex-col gap-2 pl-14 md:w-1/2 md:pl-0 ${
-                i % 2 === 0
-                  ? 'md:pr-12 md:self-start md:text-right'
-                  : 'md:pl-12 md:self-end'
-              }`}
+              className='relative md:grid md:grid-cols-2 md:gap-0'
             >
+              {/* VÄNSTER KOLUMN */}
               <div
-                className={`absolute top-1 left-4 h-4 w-4 rounded-full border-2 border-accent bg-background md:left-auto ${
-                  i % 2 === 0 ? 'md:right-2' : 'md:left-2'
+                className={`hidden md:flex md:items-start md:pr-12 md:justify-end ${
+                  i % 2 === 0 ? '' : 'md:invisible'
                 }`}
+              >
+                {i % 2 === 0 && (
+                  <div className='text-right'>
+                    <p className='text-xs font-semibold uppercase tracking-wider text-accent'>
+                      {item.year}
+                    </p>
+                    <h3 className='font-serif text-lg font-bold text-foreground'>
+                      {item.title}
+                    </h3>
+                    <p className='text-sm leading-relaxed text-muted-foreground'>
+                      {item.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* CIRKELN - alltid centrerad på linjen */}
+              <div
+                className='absolute left-4 top-1 h-4 w-4 rounded-full border-2 border-accent bg-background z-10 
+                md:left-1/2 md:-translate-x-1/2'
                 aria-hidden='true'
               />
-              <p className='text-xs font-semibold uppercase tracking-wider text-accent'>
-                {item.year}
-              </p>
-              <h3 className='font-serif text-lg font-bold text-foreground'>
-                {item.title}
-              </h3>
-              <p className='text-sm leading-relaxed text-muted-foreground'>
-                {item.description}
-              </p>
+
+              {/* HÖGER KOLUMN */}
+              <div
+                className={`flex flex-col gap-2 pl-14 md:pl-12 ${
+                  i % 2 !== 0 ? '' : 'md:invisible md:hidden'
+                }`}
+              >
+                {i % 2 !== 0 && (
+                  <>
+                    <p className='text-xs font-semibold uppercase tracking-wider text-accent'>
+                      {item.year}
+                    </p>
+                    <h3 className='font-serif text-lg font-bold text-foreground'>
+                      {item.title}
+                    </h3>
+                    <p className='text-sm leading-relaxed text-muted-foreground'>
+                      {item.description}
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* MOBIL - visas bara på små skärmar */}
+              <div className='md:hidden flex flex-col gap-2 pl-14'>
+                <p className='text-xs font-semibold uppercase tracking-wider text-accent'>
+                  {item.year}
+                </p>
+                <h3 className='font-serif text-lg font-bold text-foreground'>
+                  {item.title}
+                </h3>
+                <p className='text-sm leading-relaxed text-muted-foreground'>
+                  {item.description}
+                </p>
+              </div>
             </div>
           ))}
         </div>
