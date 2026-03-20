@@ -30,8 +30,8 @@ export default function HomePage() {
               A refined stay across Sweden
             </h1>
             <p className='mx-auto mt-4 max-w-lg text-base leading-relaxed text-primary-foreground/80 md:text-lg'>
-              MME Hotels brings Nordic elegance and warm hospitality to
-              Stockholm, Gothenburg, Malmo, and Uppsala.
+              Experience Nordic elegance and warm hospitality in the heart of
+              Sweden's premier cities.
             </p>
           </div>
 
