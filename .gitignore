@@ -5,6 +5,20 @@ obj/
 *.user
 *.suo
 
+# .NET additional
+*.dll
+*.exe
+*.pdb
+apphost.exe
+
+# NuGet / build system
+project.assets.json
+*.nuget.g.props
+*.nuget.g.targets
+*.FileListAbsolute.txt
+*.AssemblyInfo.cs
+*.assets.cache
+
 # ===== SQL Server =====
 *.mdf
 *.ldf
