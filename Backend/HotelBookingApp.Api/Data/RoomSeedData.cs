@@ -1,11 +1,10 @@
-using Bogus;
 using HotelBookingApp.Api.Models;
 
 namespace HotelBookingApp.Api.Data;
 
 public static class RoomSeedData
 {
-    public static async Task Initialize(AppDbContext context)
+    public static async Task Seed(AppDbContext context)
     {
         if (!context.Hotels.Any())
             return;

@@ -64,7 +64,6 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     await SeedData.Initialize(context, builder.Configuration);
-    await RoomSeedData.Initialize(context);
 }
 
 app.Run();
