@@ -137,6 +137,7 @@ public async Task<IActionResult> Update(int id, UpdateCityDto dto)
     return Ok(result);
     }
 
+
     [HttpDelete("{id}")] //City DELETE (blockeras om en stad är kopplat till ett hotell)
 public async Task<IActionResult> Delete(int id)
 {
@@ -149,6 +150,21 @@ public async Task<IActionResult> Delete(int id)
         return BadRequest("Cannot delete city because it has hotels linked to it.");
 
     _context.Cities.Remove(city);
+    await _context.SaveChangesAsync();
+
+    return NoContent();
+}
+
+[HttpDelete("{cityId}/hotels/{hotelId}")] //DELETE /api/categories/{categoryID}/products/{productId}
+public async Task<IActionResult> DeleteHotelFromCity(int cityId, int hotelId)
+{
+    var hotel = await _context.Hotels
+        .FirstOrDefaultAsync(h => h.Id == hotelId && h.CityId == cityId);
+
+    if (hotel == null)
+        return NotFound("Hotel not found for this city.");
+
+    _context.Hotels.Remove(hotel);
     await _context.SaveChangesAsync();
 
     return NoContent();
