@@ -41,31 +41,62 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { getHotels, deleteHotel, type Hotel as HotelType } from '@/lib/hotel-data';
+import { 
+  getHotels, 
+  getCities, 
+  createHotel, 
+  updateHotel, 
+  deleteHotel, 
+  type Hotel as HotelType,
+  type City,
+} from '@/lib/hotel-data';
 
-export function AdminDashboard() {
+export function AdminDashboard(){
   const router = useRouter();
-  const [hotelList, setHotelList] = useState<HotelType[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  /*   const [showAddDialog, setShowAddDialog] = useState(false); */
-  const [deleteTarget, setDeleteTarget] = useState<HotelType | null>(null);
-  const [expandedHotel, setExpandedHotel] = useState<number | null>(null);
 
-  /* aktivera när POST /api/hotels finns i backend */
-  // Form state for adding a new hotel
-  /*  const [newHotel, setNewHotel] = useState({
-    name: '',
-    city: '',
-    address: '',
-    description: '',
-    pricePerNight: '',
-    rating: '',
-    amenities: '',
-  }); */
+const [hotelList, setHotelList] = useState<HotelType[]>([]);
+const [cityList, setCityList] = useState<City[]>([]);
+const [searchQuery, setSearchQuery] = useState('');
+const [showAddDialog, setShowAddDialog] = useState(false);
+const [showEditDialog, setShowEditDialog] = useState(false);
+const [editingHotel, setEditingHotel] = useState<HotelType | null>(null);
+const [deleteTarget, setDeleteTarget] = useState<HotelType | null>(null);
+const [expandedHotel, setExpandedHotel] = useState<number | null>(null);
+
+const [newHotel, setNewHotel] = useState({
+  name: '',
+  cityId: '',
+  address: '',
+  description: '',
+  pricePerNight: '',
+  rating: '',
+  amenities: '',
+  image: '',
+  urlSlug: '',
+  reviewCount: '0',
+});
+
+const [editHotelForm, setEditHotelForm] = useState({
+  name: '',
+  cityId: '',
+  address: '',
+  description: '',
+  pricePerNight: '',
+  rating: '',
+  amenities: '',
+  image: '',
+  urlSlug: '',
+  reviewCount: '0',
+});
+
 
   useEffect(() => {
     getHotels().then(setHotelList);
   }, []);
+
+  useEffect(() => {
+  getCities().then(setCityList);
+}, []);
 
   const checkAuth = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -97,6 +128,27 @@ export function AdminDashboard() {
     router.push('/');
   }
 
+  function openEditHotelDialog(hotel: HotelType) {
+  setEditingHotel(hotel);
+
+  const matchedCity = cityList.find((city) => city.name === hotel.cityName);
+
+  setEditHotelForm({
+    name: hotel.name,
+    cityId: matchedCity ? String(matchedCity.id) : '',
+    address: hotel.address,
+    description: hotel.description,
+    pricePerNight: String(hotel.pricePerNight),
+    rating: String(hotel.rating),
+    amenities: hotel.amenities,
+    image: hotel.image,
+    urlSlug: hotel.urlSlug,
+    reviewCount: String(hotel.reviewCount),
+  });
+
+  setShowEditDialog(true);
+}
+
   async function handleDeleteHotel() {
   if (!deleteTarget) return;
 
@@ -108,6 +160,77 @@ export function AdminDashboard() {
     console.error('Failed to delete hotel:', error);
   }
 }
+
+
+async function handleAddHotel(e: React.FormEvent) {
+  e.preventDefault();
+
+  try {
+    const createdHotel = await createHotel({
+      name: newHotel.name,
+      description: newHotel.description,
+      pricePerNight: Number(newHotel.pricePerNight),
+      image: newHotel.image,
+      urlSlug: newHotel.urlSlug,
+      address: newHotel.address,
+      rating: Number(newHotel.rating),
+      reviewCount: Number(newHotel.reviewCount),
+      amenities: newHotel.amenities,
+      cityId: Number(newHotel.cityId),
+    });
+
+    setHotelList((prev) => [...prev, createdHotel]);
+
+    setNewHotel({
+      name: '',
+      cityId: '',
+      address: '',
+      description: '',
+      pricePerNight: '',
+      rating: '',
+      amenities: '',
+      image: '',
+      urlSlug: '',
+      reviewCount: '0',
+    });
+
+    setShowAddDialog(false);
+  } catch (error) {
+    console.error('Failed to create hotel:', error);
+  }
+}
+
+async function handleEditHotel(e: React.FormEvent) {
+  e.preventDefault();
+  if (!editingHotel) return;
+
+  try {
+    const updatedHotel = await updateHotel(editingHotel.id, {
+      name: editHotelForm.name,
+      description: editHotelForm.description,
+      pricePerNight: Number(editHotelForm.pricePerNight),
+      image: editHotelForm.image,
+      urlSlug: editHotelForm.urlSlug,
+      address: editHotelForm.address,
+      rating: Number(editHotelForm.rating),
+      reviewCount: Number(editHotelForm.reviewCount),
+      amenities: editHotelForm.amenities,
+      cityId: Number(editHotelForm.cityId),
+    });
+
+    setHotelList((prev) =>
+      prev.map((hotel) =>
+        hotel.id === editingHotel.id ? updatedHotel : hotel
+      )
+    );
+
+    setShowEditDialog(false);
+    setEditingHotel(null);
+  } catch (error) {
+    console.error('Failed to update hotel:', error);
+  }
+}
+
 
   const filteredHotels = hotelList.filter(
     (hotel) =>
@@ -229,13 +352,13 @@ export function AdminDashboard() {
 
             {/* Add Hotel-knapp — aktivera när POST /api/hotels finns i backend */}
 
-            {/*  <Button
-              className='gap-2 bg-foreground text-background hover:bg-foreground/90'
-              onClick={() => setShowAddDialog(true)}
-            >
-              <Plus className='h-4 w-4' />
-              <span className='hidden sm:inline'>Add Hotel</span>
-            </Button>  */}
+            <Button
+            className='gap-2 bg-foreground text-background hover:bg-foreground/90'
+            onClick={() => setShowAddDialog(true)}
+>
+            <Plus className='h-4 w-4' />
+            <span className='hidden sm:inline'>Add Hotel</span>
+            </Button>
           </div>
         </div>
 
@@ -255,7 +378,7 @@ export function AdminDashboard() {
               {!searchQuery && (
                 <Button
                   className='mt-4 gap-2 bg-foreground text-background hover:bg-foreground/90'
-                  /*  onClick={() => setShowAddDialog(true)} */
+                  onClick={() => setShowAddDialog(true)}
                 >
                   <Plus className='h-4 w-4' />
                   Add Hotel
@@ -339,6 +462,15 @@ export function AdminDashboard() {
 
                       <div className='flex items-center gap-2'>
                         <Button
+                         variant='ghost'
+                         size='sm'
+                         className='gap-1.5'
+                         onClick={() => openEditHotelDialog(hotel)}
+                        >
+                          Edit
+                        </Button>
+
+                        <Button
                           variant='ghost'
                           size='sm'
                           className='gap-1.5 text-muted-foreground'
@@ -411,159 +543,324 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* Add Hotel Dialog — aktivera när POST /api/hotels finns i backend */}
-      {/*   <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
-          <DialogHeader>
-            <DialogTitle className='font-serif text-xl'>
-              Add New Hotel
-            </DialogTitle>
-            <DialogDescription>
-              Add a new MME Hotels property to the system.
-            </DialogDescription>
-          </DialogHeader>
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+  <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
+    <DialogHeader>
+      <DialogTitle className='font-serif text-xl'>
+        Add New Hotel
+      </DialogTitle>
+      <DialogDescription>
+        Add a new MME Hotels property to the system.
+      </DialogDescription>
+    </DialogHeader>
 
-          <form onSubmit={handleAddHotel} className='flex flex-col gap-4'>
-            <div className='flex flex-col gap-1.5'>
-              <Label htmlFor='hotel-name' className='text-xs font-medium'>
-                Hotel Name
-              </Label>
-              <Input
-                id='hotel-name'
-                placeholder='MME Visby Seaside'
-                value={newHotel.name}
-                onChange={(e) =>
-                  setNewHotel({ ...newHotel, name: e.target.value })
-                }
-                required
-              />
-            </div>
+    <form onSubmit={handleAddHotel} className='flex flex-col gap-4'>
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-name'>Hotel Name</Label>
+        <Input
+          id='hotel-name'
+          value={newHotel.name}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, name: e.target.value })
+          }
+          required
+        />
+      </div>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
-              <div className='flex flex-col gap-1.5'>
-                <Label htmlFor='hotel-city' className='text-xs font-medium'>
-                  City
-                </Label>
-                <Input
-                  id='hotel-city'
-                  placeholder='Visby'
-                  value={newHotel.city}
-                  onChange={(e) =>
-                    setNewHotel({ ...newHotel, city: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className='flex flex-col gap-1.5'>
-                <Label htmlFor='hotel-price' className='text-xs font-medium'>
-                  Starting Price (SEK/night)
-                </Label>
-                <Input
-                  id='hotel-price'
-                  type='number'
-                  placeholder='1490'
-                  value={newHotel.pricePerNight}
-                  onChange={(e) =>
-                    setNewHotel({ ...newHotel, pricePerNight: e.target.value })
-                  }
-                  required
-                />
-              </div>
-            </div>
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-city'>City</Label>
+        <select
+          id='hotel-city'
+          className='rounded-md border border-border bg-background px-3 py-2 text-sm'
+          value={newHotel.cityId}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, cityId: e.target.value })
+          }
+          required
+        >
+          <option value=''>Select city</option>
+          {cityList.map((city) => (
+            <option key={city.id} value={city.id}>
+              {city.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-            <div className='flex flex-col gap-1.5'>
-              <Label htmlFor='hotel-address' className='text-xs font-medium'>
-                Address
-              </Label>
-              <Input
-                id='hotel-address'
-                placeholder='Strandgatan 12, 621 56 Visby'
-                value={newHotel.address}
-                onChange={(e) =>
-                  setNewHotel({ ...newHotel, address: e.target.value })
-                }
-                required
-              />
-            </div>
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-address'>Address</Label>
+        <Input
+          id='hotel-address'
+          value={newHotel.address}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, address: e.target.value })
+          }
+          required
+        />
+      </div>
 
-            <div className='flex flex-col gap-1.5'>
-              <Label
-                htmlFor='hotel-description'
-                className='text-xs font-medium'
-              >
-                Description
-              </Label>
-              <Textarea
-                id='hotel-description'
-                placeholder='A seaside retreat on the stunning island of Gotland...'
-                value={newHotel.description}
-                onChange={(e) =>
-                  setNewHotel({ ...newHotel, description: e.target.value })
-                }
-                rows={3}
-                required
-              />
-            </div>
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-description'>Description</Label>
+        <Textarea
+          id='hotel-description'
+          value={newHotel.description}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, description: e.target.value })
+          }
+          rows={3}
+          required
+        />
+      </div>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
-              <div className='flex flex-col gap-1.5'>
-                <Label htmlFor='hotel-rating' className='text-xs font-medium'>
-                  Rating (1-5)
-                </Label>
-                <Input
-                  id='hotel-rating'
-                  type='number'
-                  step='0.1'
-                  min='1'
-                  max='5'
-                  placeholder='4.5'
-                  value={newHotel.rating}
-                  onChange={(e) =>
-                    setNewHotel({ ...newHotel, rating: e.target.value })
-                  }
-                />
-              </div>
-              <div className='flex flex-col gap-1.5'>
-                <Label
-                  htmlFor='hotel-amenities'
-                  className='text-xs font-medium'
-                >
-                  Amenities
-                </Label>
-                <Input
-                  id='hotel-amenities'
-                  placeholder='Spa, Restaurant, Wi-Fi'
-                  value={newHotel.amenities}
-                  onChange={(e) =>
-                    setNewHotel({ ...newHotel, amenities: e.target.value })
-                  }
-                />
-                <p className='text-[10px] text-muted-foreground'>
-                  Comma-separated list
-                </p>
-              </div>
-            </div>
+      <div className='grid gap-4 sm:grid-cols-2'>
+        <div className='flex flex-col gap-1.5'>
+          <Label htmlFor='hotel-price'>Price Per Night</Label>
+          <Input
+            id='hotel-price'
+            type='number'
+            value={newHotel.pricePerNight}
+            onChange={(e) =>
+              setNewHotel({ ...newHotel, pricePerNight: e.target.value })
+            }
+            required
+          />
+        </div>
 
-            <Separator />
+        <div className='flex flex-col gap-1.5'>
+          <Label htmlFor='hotel-rating'>Rating</Label>
+          <Input
+            id='hotel-rating'
+            type='number'
+            step='0.1'
+            value={newHotel.rating}
+            onChange={(e) =>
+              setNewHotel({ ...newHotel, rating: e.target.value })
+            }
+            required
+          />
+        </div>
+      </div>
 
-            <div className='flex justify-end gap-2'>
-              <Button
-                type='button'
-                variant='ghost'
-                onClick={() => setShowAddDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                className='bg-foreground text-background hover:bg-foreground/90'
-              >
-                Add Hotel
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog> */}
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-amenities'>Amenities</Label>
+        <Input
+          id='hotel-amenities'
+          value={newHotel.amenities}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, amenities: e.target.value })
+          }
+          placeholder='Spa, Restaurant, Wi-Fi'
+          required
+        />
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-image'>Image URL</Label>
+        <Input
+          id='hotel-image'
+          value={newHotel.image}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, image: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='hotel-slug'>Url Slug</Label>
+        <Input
+          id='hotel-slug'
+          value={newHotel.urlSlug}
+          onChange={(e) =>
+            setNewHotel({ ...newHotel, urlSlug: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex justify-end gap-2'>
+        <Button
+          type='button'
+          variant='ghost'
+          onClick={() => setShowAddDialog(false)}
+        >
+          Cancel
+        </Button>
+        <Button
+          type='submit'
+          className='bg-foreground text-background hover:bg-foreground/90'
+        >
+          Add Hotel
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
+<Dialog
+  open={showEditDialog}
+  onOpenChange={(open) => {
+    setShowEditDialog(open);
+    if (!open) setEditingHotel(null);
+  }}
+>
+  <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
+    <DialogHeader>
+      <DialogTitle className='font-serif text-xl'>
+        Edit Hotel
+      </DialogTitle>
+      <DialogDescription>
+        Update hotel information.
+      </DialogDescription>
+    </DialogHeader>
+
+    <form onSubmit={handleEditHotel} className='flex flex-col gap-4'>
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-name'>Hotel Name</Label>
+        <Input
+          id='edit-hotel-name'
+          value={editHotelForm.name}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, name: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-city'>City</Label>
+        <select
+          id='edit-hotel-city'
+          className='rounded-md border border-border bg-background px-3 py-2 text-sm'
+          value={editHotelForm.cityId}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, cityId: e.target.value })
+          }
+          required
+        >
+          <option value=''>Select city</option>
+          {cityList.map((city) => (
+            <option key={city.id} value={city.id}>
+              {city.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-address'>Address</Label>
+        <Input
+          id='edit-hotel-address'
+          value={editHotelForm.address}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, address: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-description'>Description</Label>
+        <Textarea
+          id='edit-hotel-description'
+          value={editHotelForm.description}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, description: e.target.value })
+          }
+          rows={3}
+          required
+        />
+      </div>
+
+      <div className='grid gap-4 sm:grid-cols-2'>
+        <div className='flex flex-col gap-1.5'>
+          <Label htmlFor='edit-hotel-price'>Price Per Night</Label>
+          <Input
+            id='edit-hotel-price'
+            type='number'
+            value={editHotelForm.pricePerNight}
+            onChange={(e) =>
+              setEditHotelForm({
+                ...editHotelForm,
+                pricePerNight: e.target.value,
+              })
+            }
+            required
+          />
+        </div>
+
+        <div className='flex flex-col gap-1.5'>
+          <Label htmlFor='edit-hotel-rating'>Rating</Label>
+          <Input
+            id='edit-hotel-rating'
+            type='number'
+            step='0.1'
+            value={editHotelForm.rating}
+            onChange={(e) =>
+              setEditHotelForm({ ...editHotelForm, rating: e.target.value })
+            }
+            required
+          />
+        </div>
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-amenities'>Amenities</Label>
+        <Input
+          id='edit-hotel-amenities'
+          value={editHotelForm.amenities}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, amenities: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-image'>Image URL</Label>
+        <Input
+          id='edit-hotel-image'
+          value={editHotelForm.image}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, image: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex flex-col gap-1.5'>
+        <Label htmlFor='edit-hotel-slug'>Url Slug</Label>
+        <Input
+          id='edit-hotel-slug'
+          value={editHotelForm.urlSlug}
+          onChange={(e) =>
+            setEditHotelForm({ ...editHotelForm, urlSlug: e.target.value })
+          }
+          required
+        />
+      </div>
+
+      <div className='flex justify-end gap-2'>
+        <Button
+          type='button'
+          variant='ghost'
+          onClick={() => {
+            setShowEditDialog(false);
+            setEditingHotel(null);
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          type='submit'
+          className='bg-foreground text-background hover:bg-foreground/90'
+        >
+          Save Changes
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
 
       {/* Delete confirmation */}
       <AlertDialog
