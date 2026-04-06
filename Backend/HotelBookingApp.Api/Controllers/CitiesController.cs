@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Api.Data;
+using HotelBookingApp.Api.DTOs;
 using HotelBookingApp.Api.DTOs.Cities;
 using HotelBookingApp.Api.DTOs.Hotels;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +19,15 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var cities = _context.Cities
+        var query = _context.Cities.AsQueryable();
+
+        var totalCount = await query.CountAsync();
+
+        var cities = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new CityDto
             {
                 Id = c.Id,
@@ -28,14 +35,23 @@ public class CitiesController : ControllerBase
                 Image = c.Image,
                 UrlSlug = c.UrlSlug
             })
-            .ToList();
-        return Ok(cities);
+            .ToListAsync();
+
+        var result = new PagedResult<CityDto>
+        {
+            Items = cities,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        return Ok(result);
     }
 
     [HttpGet("{Id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var city = _context.Cities
+        var city = await _context.Cities
             .Include(c => c.Hotels)
             .Where(c => c.Id == id)
             .Select(c => new CityWithHotelsDto
@@ -59,7 +75,8 @@ public class CitiesController : ControllerBase
                     Amenities = h.Amenities
                 }).ToList()
             })
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
+
         if (city == null)
             return NotFound();
 
