@@ -34,6 +34,46 @@ export interface DashboardStats {
   averageRating: number;
 }
 
+export interface CreateBookingPayload {
+  hotelId: number;
+  roomId: number;
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+}
+
+export interface BookingResponse {
+  id: number;
+  hotelId: number;
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+}
+
+export async function createBooking(
+  payload: CreateBookingPayload,
+): Promise<BookingResponse> {
+  const token = localStorage.getItem('token');
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Failed to create booking');
+  }
+
+  return res.json();
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats`);
   if (!res.ok) throw new Error('Failed to fetch stats');

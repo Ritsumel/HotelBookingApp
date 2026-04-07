@@ -7,7 +7,7 @@ public class Booking
     public int HotelId { get; set; }
     public Hotel? Hotel { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
     public User? User { get; set; }
 
     public string GuestName { get; set; } = "";
@@ -18,4 +18,6 @@ public class Booking
     public int Guests { get; set; }
 
     public bool IsCancelled { get; set; } = false;
+
+    public int RoomId { get; set; }
 }

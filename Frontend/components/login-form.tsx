@@ -74,6 +74,12 @@ export function LoginForm() {
 
       localStorage.setItem('token', data.access_token);
 
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        localStorage.setItem('user', JSON.stringify({ email: email }));
+      }
+
       router.push('/');
     } catch (err) {
       setErrorMessage('Unable to connect to the server.');

@@ -11,4 +11,6 @@ public class CreateBookingDto
     public DateTime CheckOut { get; set; }
 
     public int Guests { get; set; }
+
+    public int RoomId { get; set; }
 }

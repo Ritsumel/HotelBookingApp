@@ -27,16 +27,17 @@ public class AuthController : ControllerBase
     {
         var user = _context.Users
             .FirstOrDefault(u => u.Email == request.Email
-                  && u.PasswordHash == request.Password);
+                  && u.PasswordHash == request.Password); 
 
         if (user == null)
             return Unauthorized();
 
+        
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+        new Claim(ClaimTypes.Name, user.Email),
+        new Claim(ClaimTypes.Role, user.Role)
+    };
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes("ThisIsAReallyLongSecretKeyForJwtAuthentication12345"));
@@ -53,7 +54,13 @@ public class AuthController : ControllerBase
         {
             access_token = new JwtSecurityTokenHandler().WriteToken(token),
             token_type = "Bearer",
-            expires_in = 3600
+            expires_in = 3600,
+            user = new
+            {
+                fullName = user.FullName,
+                email = user.Email,
+                role = user.Role
+            }
         });
     }
 

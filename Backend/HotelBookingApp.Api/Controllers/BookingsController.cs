@@ -1,5 +1,4 @@
 ﻿using HotelBookingApp.Api.Data;
-using HotelBookingApp.Api.Models;
 using HotelBookingApp.Api.DTOs.Bookings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +6,6 @@ using System.Security.Claims;
 
 namespace HotelBookingApp.Api.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/bookings")]
 public class BookingsController : ControllerBase
@@ -22,6 +20,7 @@ public class BookingsController : ControllerBase
     private string? CurrentEmail => User.FindFirstValue(ClaimTypes.Name);
     private string? CurrentRole => User.FindFirstValue(ClaimTypes.Role);
 
+    [Authorize] 
     [HttpGet]
     public IActionResult GetBookings()
     {
@@ -33,18 +32,16 @@ public class BookingsController : ControllerBase
         if (role != "Admin")
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-
-            if (user == null)
-                return Unauthorized();
+            if (user == null) return Unauthorized();
 
             query = query.Where(b => b.UserId == user.Id);
         }
 
         var bookings = query.Select(MapToDto).ToList();
-
         return Ok(bookings);
     }
 
+    [Authorize]
     [HttpGet("cancelled")]
     public IActionResult GetCancelledBookings()
     {
@@ -74,33 +71,42 @@ public class BookingsController : ControllerBase
         return Ok(userBookings);
     }
 
-    [HttpPost]
+    [HttpPost] 
     public IActionResult CreateBooking(CreateBookingDto dto)
     {
+        
+        if (dto.CheckIn.Date < DateTime.Today)
+            return BadRequest("Check-in date cannot be in the past.");
+
+        if (dto.CheckOut <= dto.CheckIn)
+            return BadRequest("Check-out date must be after check-in date.");
+
+        
         var email = CurrentEmail;
         var user = _context.Users.FirstOrDefault(u => u.Email == email);
 
-        if (user == null)
-            return Unauthorized();
-
+        
         var booking = new Booking
         {
             HotelId = dto.HotelId,
-            GuestName = dto.GuestName,
+            RoomId = dto.RoomId,
+            GuestName = string.IsNullOrWhiteSpace(dto.GuestName) && user != null
+                        ? user.FullName
+                        : dto.GuestName,
             CheckIn = dto.CheckIn,
             CheckOut = dto.CheckOut,
             Guests = dto.Guests,
-            UserId = user.Id
+            UserId = user?.Id 
         };
 
         _context.Bookings.Add(booking);
         _context.SaveChanges();
 
         var result = MapToDto(booking);
-
         return CreatedAtAction(nameof(GetBookings), new { id = result.Id }, result);
     }
 
+    [Authorize]
     [HttpPatch("{id}/cancel")]
     public IActionResult CancelBooking(int id)
     {
@@ -118,21 +124,15 @@ public class BookingsController : ControllerBase
         if (role != "Admin")
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-
-            if (user == null)
-                return Unauthorized();
-
-            if (booking.UserId != user.Id)
-                return Forbid();
+            if (user == null) return Unauthorized();
+            if (booking.UserId != user.Id) return Forbid();
         }
 
         booking.IsCancelled = true;
-
         _context.SaveChanges();
 
         return NoContent();
     }
-
     private static BookingDto MapToDto(Booking b)
     {
         return new BookingDto

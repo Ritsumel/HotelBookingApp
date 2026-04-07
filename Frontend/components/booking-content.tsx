@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, CalendarDays, Users, SlidersHorizontal } from 'lucide-react';
+import {
+  Search,
+  CalendarDays,
+  Users,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -194,7 +201,7 @@ export function BookingContent() {
             <Button
               variant='outline'
               size='sm'
-              className='h-8 w-8 p-0' // Gör dem kvadratiska och kompakta uppe
+              className='h-8 w-8 p-0'
               disabled={currentPage === 1}
               onClick={() => {
                 setCurrentPage((prev) => prev - 1);
@@ -202,8 +209,7 @@ export function BookingContent() {
               }}
             >
               <span className='sr-only'>Previous</span>
-              {/* Lägg gärna in en lucide-react ikon här, t.ex. <ChevronLeft /> */}
-              {'<'}
+              <ChevronLeft />
             </Button>
 
             <span className='text-xs font-medium px-2'>
@@ -221,7 +227,7 @@ export function BookingContent() {
               }}
             >
               <span className='sr-only'>Next</span>
-              {'>'}
+              <ChevronRight />
             </Button>
           </div>
         )}
