@@ -19,8 +19,40 @@ export interface City {
   urlSlug: string;
 }
 
-export async function getHotels(): Promise<Hotel[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hotels`);
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface DashboardStats {
+  totalHotels: number;
+  totalCities: number;
+  totalRooms: number;
+  averageRating: number;
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats`);
+  if (!res.ok) throw new Error('Failed to fetch stats');
+  return res.json();
+}
+
+export async function getHotels(params?: {
+  cityId?: number;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedResult<Hotel>> {
+  const query = new URLSearchParams();
+  if (params?.cityId) query.set('cityId', String(params.cityId));
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+  const qs = query.toString();
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/hotels${qs ? `?${qs}` : ''}`,
+  );
   if (!res.ok) throw new Error('Failed to fetch hotels');
   return res.json();
 }
@@ -33,8 +65,17 @@ export async function getHotelById(id: number): Promise<Hotel> {
   return res.json();
 }
 
-export async function getCities(): Promise<City[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cities`);
+export async function getCities(params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedResult<City>> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+  const qs = query.toString();
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/cities${qs ? `?${qs}` : ''}`,
+  );
   if (!res.ok) throw new Error('Failed to fetch cities');
   return res.json();
 }
@@ -102,9 +143,9 @@ export interface CreateRoomPayload {
 
 export async function createCity(payload: CreateCityPayload): Promise<City> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cities`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
@@ -116,14 +157,20 @@ export async function createCity(payload: CreateCityPayload): Promise<City> {
   return res.json();
 }
 
-export async function updateCity(id: number, payload: UpdateCityPayload): Promise<City> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cities/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
+export async function updateCity(
+  id: number,
+  payload: UpdateCityPayload,
+): Promise<City> {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/cities/${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 
   if (!res.ok) {
     throw new Error(await res.text());
@@ -133,9 +180,12 @@ export async function updateCity(id: number, payload: UpdateCityPayload): Promis
 }
 
 export async function deleteCity(id: number): Promise<void> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cities/${id}`, {
-    method: "DELETE",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/cities/${id}`,
+    {
+      method: 'DELETE',
+    },
+  );
 
   if (!res.ok) {
     throw new Error(await res.text());
@@ -144,9 +194,9 @@ export async function deleteCity(id: number): Promise<void> {
 
 export async function createHotel(payload: CreateHotelPayload): Promise<Hotel> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hotels`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
@@ -158,14 +208,20 @@ export async function createHotel(payload: CreateHotelPayload): Promise<Hotel> {
   return res.json();
 }
 
-export async function updateHotel(id: number, payload: UpdateHotelPayload): Promise<Hotel> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hotels/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
+export async function updateHotel(
+  id: number,
+  payload: UpdateHotelPayload,
+): Promise<Hotel> {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/hotels/${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 
   if (!res.ok) {
     throw new Error(await res.text());
@@ -175,9 +231,12 @@ export async function updateHotel(id: number, payload: UpdateHotelPayload): Prom
 }
 
 export async function deleteHotel(id: number): Promise<void> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hotels/${id}`, {
-    method: "DELETE",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/hotels/${id}`,
+    {
+      method: 'DELETE',
+    },
+  );
 
   if (!res.ok) {
     throw new Error(await res.text());
@@ -186,27 +245,29 @@ export async function deleteHotel(id: number): Promise<void> {
 
 export async function getRooms(): Promise<Room[]> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`);
-  if (!res.ok) throw new Error("Failed to fetch rooms");
+  if (!res.ok) throw new Error('Failed to fetch rooms');
   return res.json();
 }
 
 export async function getRoomById(id: number): Promise<Room> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch room");
+  if (!res.ok) throw new Error('Failed to fetch room');
   return res.json();
 }
 
 export async function getRoomsByHotelId(hotelId: number): Promise<Room[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/hotel/${hotelId}`);
-  if (!res.ok) throw new Error("Failed to fetch rooms for hotel");
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/rooms/hotel/${hotelId}`,
+  );
+  if (!res.ok) throw new Error('Failed to fetch rooms for hotel');
   return res.json();
 }
 
 export async function createRoom(payload: CreateRoomPayload): Promise<Room> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });

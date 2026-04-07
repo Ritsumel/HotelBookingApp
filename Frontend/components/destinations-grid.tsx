@@ -17,8 +17,8 @@ export function DestinationsGrid() {
   >([]);
 
   useEffect(() => {
-    getCities().then((data) => {
-      const top4 = data.slice(0, 4).map((c) => ({
+    getCities({ pageSize: 4 }).then((data) => {
+      const top4 = data.items.map((c) => ({
         name: c.name,
         image: cityImages[c.name] ?? c.image,
       }));
@@ -64,9 +64,6 @@ export function DestinationsGrid() {
             </div>
             <div className='absolute inset-0 bg-linear-to-t from-foreground/80 via-foreground/20 to-transparent' />
             <div className='absolute bottom-0 left-0 right-0 p-5'>
-              {/* <p className='text-xs font-medium uppercase tracking-wider text-primary-foreground/60'>
-                {dest.rooms} rooms
-              </p> */}
               <h3 className='mt-1 font-serif text-xl font-bold text-primary-foreground'>
                 {dest.name}
               </h3>

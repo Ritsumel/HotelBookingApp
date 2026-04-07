@@ -14,42 +14,66 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { HotelCard } from '@/components/hotel-card';
-import { getHotels, getCities, getRooms, type Hotel, type Room } from '@/lib/hotel-data';
+import {
+  getHotels,
+  getCities,
+  getRooms,
+  type Hotel,
+  type Room,
+  type City,
+} from '@/lib/hotel-data';
 
 export function BookingContent() {
   const searchParams = useSearchParams();
 
   const [city, setCity] = useState(searchParams.get('city') || 'All Cities');
   const [cities, setCities] = useState<string[]>(['All Cities']);
+  const [cityObjects, setCityObjects] = useState<City[]>([]);
   const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || '');
   const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || '');
   const [guests, setGuests] = useState(searchParams.get('guests') || '1');
   const [sortBy, setSortBy] = useState('recommended');
   const [hotelList, setHotelList] = useState<Hotel[]>([]);
   const [roomList, setRoomList] = useState<Room[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
-  getRooms().then(setRoomList).catch(console.error);
-}, []);
-
-  useEffect(() => {
-    getHotels().then(setHotelList);
+    getRooms().then(setRoomList).catch(console.error);
   }, []);
 
   useEffect(() => {
-    getCities().then((data) => {
-      setCities(['All Cities', ...data.map((c) => c.name)]);
+    getCities({ pageSize: 100 }).then((data) => {
+      setCityObjects(data.items);
+      setCities(['All Cities', ...data.items.map((c) => c.name)]);
     });
   }, []);
 
-  const filteredHotels = hotelList
-    .filter((h) => city === 'All Cities' || h.cityName === city)
-    .sort((a, b) => {
-      if (sortBy === 'price-low') return a.pricePerNight - b.pricePerNight;
-      if (sortBy === 'price-high') return b.pricePerNight - a.pricePerNight;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      return 0;
+  useEffect(() => {
+    const selectedCity = cityObjects.find((c) => c.name === city);
+    const params = {
+      ...(selectedCity && { cityId: selectedCity.id }),
+      page: currentPage,
+      pageSize: pageSize,
+    };
+
+    getHotels(params).then((response) => {
+      setHotelList(response.items);
+      setTotalPages(response.totalPages);
     });
+  }, [city, cityObjects, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [city]);
+
+  const filteredHotels = hotelList.sort((a, b) => {
+    if (sortBy === 'price-low') return a.pricePerNight - b.pricePerNight;
+    if (sortBy === 'price-high') return b.pricePerNight - a.pricePerNight;
+    if (sortBy === 'rating') return b.rating - a.rating;
+    return 0;
+  });
 
   return (
     <div className='mx-auto max-w-7xl px-6 pb-24 pt-28'>
@@ -148,14 +172,60 @@ export function BookingContent() {
         </div>
       </div>
 
-      <div className='mb-4 flex items-center justify-between'>
-        <p className='text-sm text-muted-foreground'>
-          {filteredHotels.length}{' '}
-          {filteredHotels.length === 1 ? 'hotel' : 'hotels'} found
-          {city !== 'All Cities' && ` in ${city}`}
-        </p>
-      </div>
+      <div className='mb-6 flex items-center justify-between border-b border-border pb-4'>
+        {/* Vänster: Info */}
+        <div className='flex flex-col'>
+          <p className='text-sm font-medium text-foreground'>
+            {hotelList.length > 0
+              ? `${filteredHotels.length} hotels found`
+              : 'Searching...'}
+            {city !== 'All Cities' && (
+              <span className='text-muted-foreground'> in {city}</span>
+            )}
+          </p>
+          <p className='text-xs text-muted-foreground'>
+            Page {currentPage} of {totalPages}
+          </p>
+        </div>
 
+        {/* Höger: Kontroller */}
+        {totalPages > 1 && (
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='outline'
+              size='sm'
+              className='h-8 w-8 p-0' // Gör dem kvadratiska och kompakta uppe
+              disabled={currentPage === 1}
+              onClick={() => {
+                setCurrentPage((prev) => prev - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              <span className='sr-only'>Previous</span>
+              {/* Lägg gärna in en lucide-react ikon här, t.ex. <ChevronLeft /> */}
+              {'<'}
+            </Button>
+
+            <span className='text-xs font-medium px-2'>
+              {currentPage} / {totalPages}
+            </span>
+
+            <Button
+              variant='outline'
+              size='sm'
+              className='h-8 w-8 p-0'
+              disabled={currentPage >= totalPages}
+              onClick={() => {
+                setCurrentPage((prev) => prev + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              <span className='sr-only'>Next</span>
+              {'>'}
+            </Button>
+          </div>
+        )}
+      </div>
       <div className='flex flex-col gap-6'>
         {filteredHotels.length === 0 ? (
           <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-card py-20'>
@@ -185,6 +255,42 @@ export function BookingContent() {
             />
           ))
         )}
+
+        {/* Paginering-kontroller */}
+        {hotelList.length > 0 && (
+          <div className='mt-12 flex items-center justify-center gap-4'>
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={currentPage === 1}
+              onClick={() => {
+                setCurrentPage((prev) => prev - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              Previous
+            </Button>
+
+            <span className='text-sm font-medium'>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={currentPage >= totalPages}
+              onClick={() => {
+                setCurrentPage((prev) => prev + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        )}
+        <p className='text-xs text-muted-foreground'>
+          Showing page {currentPage} of {totalPages}
+        </p>
       </div>
     </div>
   );

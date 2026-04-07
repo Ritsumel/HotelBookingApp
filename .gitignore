@@ -40,6 +40,12 @@ appsettings.Development.json
 # ===== VS Code =====
 .vscode/
 
+# ===== Claude =====
+.claude/
+
+# ==== TypeScript ====
+*.tsbuildinfo
+
 # ===== OS files =====
 .DS_Store
 Thumbs.db

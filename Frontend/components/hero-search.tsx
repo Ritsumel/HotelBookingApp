@@ -34,7 +34,7 @@ export function HeroSearch() {
 
   useEffect(() => {
     getCities().then((data) => {
-      setCities(data.map((c) => c.name));
+      setCities(data.items.map((c) => c.name));
     });
   }, []);
 
