@@ -39,6 +39,30 @@ export async function getCities(): Promise<City[]> {
   return res.json();
 }
 
+export async function getHotelBySlug(slug: string): Promise<Hotel | null> {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/hotels?slug=${slug}`
+  );
+
+  if (!res.ok) throw new Error("Failed to fetch hotel");
+
+  const data: Hotel[] = await res.json();
+
+  return data.length > 0 ? data[0] : null;
+}
+
+export async function getCityBySlug(slug: string): Promise<City | null> {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/cities?slug=${slug}`
+  );
+
+  if (!res.ok) throw new Error("Failed to fetch city");
+
+  const data: City[] = await res.json();
+
+  return data.length > 0 ? data[0] : null;
+}
+
 export interface CreateCityPayload {
   name: string;
   image: string;

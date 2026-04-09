@@ -94,6 +94,12 @@ public class RoomsController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Name))
             return BadRequest("Room name is required.");
 
+        if (dto.PricePerNight <= 0)
+            return BadRequest("Price must be greater than 0.");
+
+        if (dto.Capacity <= 0)
+            return BadRequest("Capacity must be greater than 0.");
+
         var hotelExists = await _context.Hotels.AnyAsync(h => h.Id == dto.HotelId);
         if (!hotelExists)
             return BadRequest("HotelId does not exist.");
@@ -127,5 +133,54 @@ public class RoomsController : ControllerBase
         };
 
         return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<RoomDto>> UpdateRoom(int id, CreateRoomDto dto)
+    {
+        var room = await _context.Rooms.FindAsync(id);
+
+        if (room == null)
+            return NotFound("Room not found.");
+
+        // Update fields
+        room.Name = dto.Name;
+        room.RoomType = dto.RoomType;
+        room.PricePerNight = dto.PricePerNight;
+        room.Capacity = dto.Capacity;
+        room.Description = dto.Description;
+        room.ImageUrl = dto.ImageUrl;
+        room.IsAvailable = dto.IsAvailable;
+        room.HotelId = dto.HotelId;
+
+        await _context.SaveChangesAsync();
+
+        var result = new RoomDto
+        {
+            Id = room.Id,
+            HotelId = room.HotelId,
+            Name = room.Name,
+            RoomType = room.RoomType,
+            PricePerNight = room.PricePerNight,
+            Capacity = room.Capacity,
+            Description = room.Description,
+            ImageUrl = room.ImageUrl,
+            IsAvailable = room.IsAvailable
+        };
+
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteRoom(int id)
+    {
+        var room = await _context.Rooms.FindAsync(id);
+        if (room == null)
+            return NotFound();
+
+        _context.Rooms.Remove(room);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 }

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using HotelBookingApp.Api.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -59,8 +59,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+Console.WriteLine("🚀 BEFORE SEED");
+
 using (var scope = app.Services.CreateScope())
 {
+    Console.WriteLine("🔥 INSIDE SCOPE");
+
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     await SeedData.Initialize(context, builder.Configuration);

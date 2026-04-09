@@ -4,8 +4,11 @@ public static class SeedData
 {
     public static async Task Initialize(AppDbContext context, IConfiguration config)
     {
+        Console.WriteLine("🔥 SEED STARTED 🔥");
 
         var accessKey = config["Unsplash:AccessKey"] ?? "";
+
+        Console.WriteLine($"UNSPLASH KEY: {accessKey}");
 
         // 1. Definiera städerna med deras viktning (Används av både City- och HotelSeed)
         var svenskaStäder = new[]
@@ -26,8 +29,7 @@ public static class SeedData
         // 4. Hotell
         var hotels = await HotelSeedData.Seed(context, accessKey, cities, svenskaStäder);
 
-        // 5. Rum (Din kollegas klass)
-        // OBS: Kontrollera att hennes metod heter 'Seed' och tar emot 'hotels'
+        // 5. Rum
         await RoomSeedData.Seed(context);
     }
 }

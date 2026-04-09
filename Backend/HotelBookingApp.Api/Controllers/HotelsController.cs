@@ -17,10 +17,18 @@ public class HotelsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public IActionResult Get([FromQuery] string? slug)
     {
-        var hotels = _context.Hotels
+        var query = _context.Hotels
             .Include(h => h.City)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(slug))
+        {
+            query = query.Where(h => h.UrlSlug == slug);
+        }
+
+        var hotels = query
             .Select(h => new HotelDto
             {
                 Id = h.Id,

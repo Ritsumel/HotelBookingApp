@@ -18,18 +18,24 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public IActionResult Get([FromQuery] string? slug)
     {
-        var cities = _context.Cities
-            .Select(c => new CityDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Image = c.Image,
-                UrlSlug = c.UrlSlug
-            })
-            .ToList();
-        return Ok(cities);
+        var query = _context.Cities.AsQueryable();
+
+        if (!string.IsNullOrEmpty(slug))
+        {
+            query = query.Where(c => c.UrlSlug == slug);
+        }
+
+        var result = query.Select(c => new CityDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Image = c.Image,
+            UrlSlug = c.UrlSlug
+        }).ToList();
+
+        return Ok(result);
     }
 
     [HttpGet("{Id}")]
