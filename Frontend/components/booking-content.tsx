@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   Search,
   CalendarDays,
@@ -45,6 +45,18 @@ export function BookingContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (checkIn) params.set('checkIn', checkIn);
+    if (checkOut) params.set('checkOut', checkOut);
+    if (city !== 'All Cities') params.set('city', city);
+    if (guests) params.set('guests', guests);
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [checkIn, checkOut, city, guests]);
 
   useEffect(() => {
     getRooms().then(setRoomList).catch(console.error);

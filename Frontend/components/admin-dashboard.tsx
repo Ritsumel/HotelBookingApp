@@ -319,12 +319,12 @@ export function AdminDashboard() {
   async function handleDeleteRoom(roomId: number) {
     try {
       await fetch(`http://localhost:8000/api/rooms/${roomId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       setRooms((prev) => prev.filter((r) => r.id !== roomId));
     } catch (err) {
-      console.error("Failed to delete room", err);
+      console.error('Failed to delete room', err);
     }
   }
 
@@ -336,9 +336,9 @@ export function AdminDashboard() {
       const res = await fetch(
         `http://localhost:8000/api/rooms/${editingRoom.id}`,
         {
-          method: "PUT",
+          method: 'PUT',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             name: editRoomForm.name,
@@ -350,18 +350,18 @@ export function AdminDashboard() {
             hotelId: editingRoom.hotelId,
             isAvailable: true,
           }),
-        }
+        },
       );
 
       const updated = await res.json();
 
-      setRooms(prev =>
-        prev.map(r => (r.id === editingRoom.id ? updated : r))
+      setRooms((prev) =>
+        prev.map((r) => (r.id === editingRoom.id ? updated : r)),
       );
 
       setEditingRoom(null);
     } catch (err) {
-      console.error("Failed to update room", err);
+      console.error('Failed to update room', err);
     }
   }
 
@@ -370,10 +370,10 @@ export function AdminDashboard() {
     if (!selectedHotelId) return;
 
     try {
-      const res = await fetch("http://localhost:8000/api/rooms", {
-        method: "POST",
+      const res = await fetch('http://localhost:8000/api/rooms', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: newRoomForm.name,
@@ -389,7 +389,7 @@ export function AdminDashboard() {
 
       const created = await res.json();
 
-      setRooms(prev => [...prev, created]);
+      setRooms((prev) => [...prev, created]);
 
       setShowAddRoomDialog(false);
       setSelectedHotelId(null);
@@ -403,7 +403,7 @@ export function AdminDashboard() {
         imageUrl: '',
       });
     } catch (err) {
-      console.error("Failed to add room", err);
+      console.error('Failed to add room', err);
     }
   }
 
@@ -553,7 +553,7 @@ export function AdminDashboard() {
           ) : (
             filteredHotels.map((hotel) => {
               const hotelRooms = rooms.filter(
-                (r) => r.hotelId === hotel.id && r.isAvailable
+                (r) => r.hotelId === hotel.id && r.isAvailable,
               );
 
               const lowestPrice =
@@ -682,20 +682,20 @@ export function AdminDashboard() {
                       <div
                         className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                           expandedHotel === hotel.id
-                            ? 'max-h-[260px] opacity-100 mt-4 pt-4 border-t border-border'
+                            ? 'max-h-65 opacity-100 mt-4 pt-4 border-t border-border'
                             : 'max-h-0 opacity-0 mt-0 pt-0 border-t border-transparent'
                         }`}
                       >
-                        <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto pr-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <div className='flex flex-col gap-2 max-h-60 overflow-y-auto pr-1'>
+                          <div className='flex items-center justify-between'>
+                            <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
                               Room Types
                             </p>
 
                             <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 px-2 text-xs transition-colors hover:bg-black hover:text-white"
+                              size='sm'
+                              variant='ghost'
+                              className='h-7 px-2 text-xs transition-colors hover:bg-black hover:text-white'
                               onClick={() => {
                                 setSelectedHotelId(hotel.id);
                                 setShowAddRoomDialog(true);
@@ -706,7 +706,7 @@ export function AdminDashboard() {
                           </div>
 
                           {hotelRooms.length === 0 && (
-                            <p className="text-xs text-muted-foreground">
+                            <p className='text-xs text-muted-foreground'>
                               No rooms yet
                             </p>
                           )}
@@ -714,31 +714,37 @@ export function AdminDashboard() {
                           {hotelRooms.map((room) => (
                             <div
                               key={room.id}
-                              className="flex items-center justify-between rounded-lg bg-background p-3"
+                              className='flex items-center justify-between rounded-lg bg-background p-3'
                             >
                               <div>
-                                <p className="text-sm font-semibold">{room.name}</p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className='text-sm font-semibold'>
+                                  {room.name}
+                                </p>
+                                <p className='text-xs text-muted-foreground'>
                                   {room.roomType} · {room.capacity} guests
                                 </p>
                               </div>
 
-                              <div className="flex items-center gap-3">
-                                <p className="text-sm font-bold">
+                              <div className='flex items-center gap-3'>
+                                <p className='text-sm font-bold'>
                                   {room.pricePerNight} kr
                                 </p>
 
-                                <Button size="sm" variant="ghost" onClick={() => openEditRoom(room)}>
+                                <Button
+                                  size='sm'
+                                  variant='ghost'
+                                  onClick={() => openEditRoom(room)}
+                                >
                                   Edit
                                 </Button>
 
                                 <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  size='sm'
+                                  variant='ghost'
+                                  className='text-destructive hover:bg-destructive/10 hover:text-destructive'
                                   onClick={() => setDeleteRoomTarget(room)}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className='h-4 w-4' />
                                 </Button>
                               </div>
                             </div>
@@ -923,12 +929,8 @@ export function AdminDashboard() {
       >
         <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
-            <DialogTitle className='font-serif text-xl'>
-              Edit Hotel
-            </DialogTitle>
-            <DialogDescription>
-              Update hotel information.
-            </DialogDescription>
+            <DialogTitle className='font-serif text-xl'>Edit Hotel</DialogTitle>
+            <DialogDescription>Update hotel information.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleEditHotel} className='flex flex-col gap-4'>
@@ -995,39 +997,21 @@ export function AdminDashboard() {
               />
             </div>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
-              <div className='flex flex-col gap-1.5'>
-                <Label htmlFor='edit-hotel-price'>Price Per Night</Label>
-                <Input
-                  id='edit-hotel-price'
-                  type='number'
-                  value={editHotelForm.pricePerNight}
-                  onChange={(e) =>
-                    setEditHotelForm({
-                      ...editHotelForm,
-                      pricePerNight: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-
-              <div className='flex flex-col gap-1.5'>
-                <Label htmlFor='edit-hotel-rating'>Rating</Label>
-                <Input
-                  id='edit-hotel-rating'
-                  type='number'
-                  step='0.1'
-                  value={editHotelForm.rating}
-                  onChange={(e) =>
-                    setEditHotelForm({
-                      ...editHotelForm,
-                      rating: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
+            <div className='flex flex-col gap-1.5'>
+              <Label htmlFor='edit-hotel-rating'>Rating</Label>
+              <Input
+                id='edit-hotel-rating'
+                type='number'
+                step='0.1'
+                value={editHotelForm.rating}
+                onChange={(e) =>
+                  setEditHotelForm({
+                    ...editHotelForm,
+                    rating: e.target.value,
+                  })
+                }
+                required
+              />
             </div>
 
             <div className='flex flex-col gap-1.5'>
@@ -1100,20 +1084,15 @@ export function AdminDashboard() {
           if (!open) setEditingRoom(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl">
-              Edit Room
-            </DialogTitle>
-            <DialogDescription>
-              Update room details.
-            </DialogDescription>
+            <DialogTitle className='font-serif text-xl'>Edit Room</DialogTitle>
+            <DialogDescription>Update room details.</DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleEditRoom} className="flex flex-col gap-4">
-
+          <form onSubmit={handleEditRoom} className='flex flex-col gap-4'>
             {/* NAME */}
-            <div className="flex flex-col gap-1.5">
+            <div className='flex flex-col gap-1.5'>
               <Label>Room Name</Label>
               <Input
                 value={editRoomForm.name}
@@ -1125,7 +1104,7 @@ export function AdminDashboard() {
             </div>
 
             {/* TYPE */}
-            <div className="flex flex-col gap-1.5">
+            <div className='flex flex-col gap-1.5'>
               <Label>Room Type</Label>
               <Input
                 value={editRoomForm.roomType}
@@ -1136,11 +1115,11 @@ export function AdminDashboard() {
             </div>
 
             {/* PRICE + CAPACITY */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <div className='flex flex-col gap-1.5'>
                 <Label>Price Per Night</Label>
                 <Input
-                  type="number"
+                  type='number'
                   value={editRoomForm.pricePerNight}
                   onChange={(e) =>
                     setEditRoomForm({
@@ -1152,10 +1131,10 @@ export function AdminDashboard() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className='flex flex-col gap-1.5'>
                 <Label>Capacity</Label>
                 <Input
-                  type="number"
+                  type='number'
                   value={editRoomForm.capacity}
                   onChange={(e) =>
                     setEditRoomForm({
@@ -1169,7 +1148,7 @@ export function AdminDashboard() {
             </div>
 
             {/* DESCRIPTION */}
-            <div className="flex flex-col gap-1.5">
+            <div className='flex flex-col gap-1.5'>
               <Label>Description</Label>
               <Textarea
                 value={editRoomForm.description}
@@ -1184,7 +1163,7 @@ export function AdminDashboard() {
             </div>
 
             {/* IMAGE */}
-            <div className="flex flex-col gap-1.5">
+            <div className='flex flex-col gap-1.5'>
               <Label>Image URL</Label>
               <Input
                 value={editRoomForm.imageUrl}
@@ -1198,18 +1177,18 @@ export function AdminDashboard() {
             </div>
 
             {/* ACTIONS */}
-            <div className="flex justify-end gap-2">
+            <div className='flex justify-end gap-2'>
               <Button
-                type="button"
-                variant="ghost"
+                type='button'
+                variant='ghost'
                 onClick={() => setEditingRoom(null)}
               >
                 Cancel
               </Button>
 
               <Button
-                type="submit"
-                className="bg-foreground text-background hover:bg-foreground/90"
+                type='submit'
+                className='bg-foreground text-background hover:bg-foreground/90'
               >
                 Save Changes
               </Button>
@@ -1225,17 +1204,15 @@ export function AdminDashboard() {
           if (!open) setSelectedHotelId(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
             <DialogTitle>Add Room</DialogTitle>
-            <DialogDescription>
-              Add a new room to this hotel.
-            </DialogDescription>
+            <DialogDescription>Add a new room to this hotel.</DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleAddRoom} className="flex flex-col gap-4">
+          <form onSubmit={handleAddRoom} className='flex flex-col gap-4'>
             <Input
-              placeholder="Room name"
+              placeholder='Room name'
               value={newRoomForm.name}
               onChange={(e) =>
                 setNewRoomForm({ ...newRoomForm, name: e.target.value })
@@ -1244,7 +1221,7 @@ export function AdminDashboard() {
             />
 
             <Input
-              placeholder="Room type"
+              placeholder='Room type'
               value={newRoomForm.roomType}
               onChange={(e) =>
                 setNewRoomForm({ ...newRoomForm, roomType: e.target.value })
@@ -1252,8 +1229,8 @@ export function AdminDashboard() {
             />
 
             <Input
-              type="number"
-              placeholder="Price"
+              type='number'
+              placeholder='Price'
               value={newRoomForm.pricePerNight}
               onChange={(e) =>
                 setNewRoomForm({
@@ -1265,8 +1242,8 @@ export function AdminDashboard() {
             />
 
             <Input
-              type="number"
-              placeholder="Capacity"
+              type='number'
+              placeholder='Capacity'
               value={newRoomForm.capacity}
               onChange={(e) =>
                 setNewRoomForm({
@@ -1278,7 +1255,7 @@ export function AdminDashboard() {
             />
 
             <Textarea
-              placeholder="Description"
+              placeholder='Description'
               value={newRoomForm.description}
               onChange={(e) =>
                 setNewRoomForm({
@@ -1289,7 +1266,7 @@ export function AdminDashboard() {
             />
 
             <Input
-              placeholder="Image URL"
+              placeholder='Image URL'
               value={newRoomForm.imageUrl}
               onChange={(e) =>
                 setNewRoomForm({
@@ -1299,11 +1276,15 @@ export function AdminDashboard() {
               }
             />
 
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setShowAddRoomDialog(false)}>
+            <div className='flex justify-end gap-2'>
+              <Button
+                type='button'
+                variant='ghost'
+                onClick={() => setShowAddRoomDialog(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">Add Room</Button>
+              <Button type='submit'>Add Room</Button>
             </div>
           </form>
         </DialogContent>
@@ -1343,11 +1324,11 @@ export function AdminDashboard() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">
+            <AlertDialogTitle className='font-serif'>
               Remove Room
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove{" "}
+              Are you sure you want to remove{' '}
               <strong>{deleteRoomTarget?.name}</strong>?
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1362,7 +1343,7 @@ export function AdminDashboard() {
                   setDeleteRoomTarget(null);
                 }
               }}
-              className="bg-destructive text-card hover:bg-destructive/90"
+              className='bg-destructive text-card hover:bg-destructive/90'
             >
               Remove Room
             </AlertDialogAction>

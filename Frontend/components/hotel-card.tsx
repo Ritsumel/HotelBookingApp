@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from "next/link";
+import Link from 'next/link';
 import Image from 'next/image';
 import { Star, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -71,8 +71,8 @@ export function HotelCard({
     formData.firstName.trim() !== '' &&
     formData.lastName.trim() !== '' &&
     formData.email.includes('@') &&
-    checkIn &&
-    checkOut;
+    checkIn !== '' &&
+    checkOut !== '';
 
   async function handleBook() {
     if (!isFormValid || !selectedRoom) return;
@@ -117,15 +117,17 @@ export function HotelCard({
 
   return (
     <>
-      <Link href={`/booking/${hotel.urlSlug}`}>
+      <Link
+        href={`/booking/${hotel.urlSlug}?checkIn=${checkIn}&checkOut=${checkOut}`}
+      >
         <article className='overflow-hidden rounded-xl border border-border bg-card'>
           <div className='grid lg:grid-cols-[320px_1fr]'>
             <div className='relative aspect-4/3 lg:aspect-auto'>
               <Image
                 src={
-                  hotel.image && hotel.image.startsWith("http")
+                  hotel.image && hotel.image.startsWith('http')
                     ? hotel.image
-                    : "/hotel.jpg"
+                    : '/hotel.jpg'
                 }
                 alt={`${hotel.name} exterior`}
                 fill
@@ -170,11 +172,10 @@ export function HotelCard({
                   </Badge>
                 ))}
               </div>
-              
             </div>
           </div>
         </article>
-      </Link>   
+      </Link>
     </>
   );
 }

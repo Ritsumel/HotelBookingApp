@@ -122,23 +122,22 @@ export async function getCities(params?: {
 
 export async function getHotelBySlug(slug: string): Promise<Hotel | null> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/hotels?slug=${slug}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/hotels?slug=${slug}`,
   );
 
-  if (!res.ok) throw new Error("Failed to fetch hotel");
+  if (!res.ok) throw new Error('Failed to fetch hotel');
 
   const data = await res.json();
 
-  // handle paged result
   return data.items?.length > 0 ? data.items[0] : null;
 }
 
 export async function getCityBySlug(slug: string): Promise<City | null> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/cities?slug=${slug}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/cities?slug=${slug}`,
   );
 
-  if (!res.ok) throw new Error("Failed to fetch city");
+  if (!res.ok) throw new Error('Failed to fetch city');
 
   const data: City[] = await res.json();
 
