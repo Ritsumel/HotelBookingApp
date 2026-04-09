@@ -127,9 +127,10 @@ export async function getHotelBySlug(slug: string): Promise<Hotel | null> {
 
   if (!res.ok) throw new Error("Failed to fetch hotel");
 
-  const data: Hotel[] = await res.json();
+  const data = await res.json();
 
-  return data.length > 0 ? data[0] : null;
+  // handle paged result
+  return data.items?.length > 0 ? data.items[0] : null;
 }
 
 export async function getCityBySlug(slug: string): Promise<City | null> {

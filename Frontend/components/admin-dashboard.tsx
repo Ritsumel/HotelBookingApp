@@ -746,90 +746,6 @@ export function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-
-                    <p className='mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2'>
-                      {hotel.description}
-                    </p>
-
-                    <div className='mt-3 flex flex-wrap gap-1.5'>
-                      {hotel.amenities.split(', ').map((amenity) => (
-                        <Badge
-                          key={amenity}
-                          variant='secondary'
-                          className='text-xs font-normal'
-                        >
-                          {amenity}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className='mt-4 flex items-center justify-between'>
-                      <div className='flex items-center gap-4'>
-                        <p className='text-sm text-muted-foreground'>
-                          <span className='font-semibold text-foreground'></span>{' '}
-                          room types
-                        </p>
-                        <p className='text-sm text-muted-foreground'>
-                          from{' '}
-                          <span className='font-semibold text-foreground'>
-                            {hotel.pricePerNight} kr
-                          </span>
-                          /night
-                        </p>
-                      </div>
-
-                      <div className='flex items-center gap-2'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='gap-1.5'
-                          onClick={() => openEditHotelDialog(hotel)}
-                        >
-                          Edit
-                        </Button>
-
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='gap-1.5 text-muted-foreground'
-                          onClick={() =>
-                            setExpandedHotel(
-                              expandedHotel === hotel.id ? null : hotel.id,
-                            )
-                          }
-                        >
-                          {expandedHotel === hotel.id ? (
-                            <>
-                              <ChevronUp className='h-4 w-4' />
-                              <span className='hidden sm:inline'>Less</span>
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className='h-4 w-4' />
-                              <span className='hidden sm:inline'>Rooms</span>
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive'
-                          onClick={() => setDeleteTarget(hotel)}
-                        >
-                          <Trash2 className='h-4 w-4' />
-                          <span className='hidden sm:inline'>Remove</span>
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Expanded room details */}
-                    {expandedHotel === hotel.id && (
-                      <div className='mt-4 flex flex-col gap-2 border-t border-border pt-4'>
-                        <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
-                          Room Types
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </article>
               );
@@ -1412,7 +1328,7 @@ export function AdminDashboard() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              className='bg-destructive text-white hover:bg-destructive/90'
               onClick={handleDeleteHotel}
             >
               Remove
