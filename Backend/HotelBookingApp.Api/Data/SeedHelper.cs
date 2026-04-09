@@ -15,9 +15,9 @@ public static class SeedHelper
             var json = JsonDocument.Parse(response);
             return json.RootElement.GetProperty("urls").GetProperty("regular").GetString() ?? "";
         }
-        catch
+        catch (Exception ex)
         {
-            // Fallback om API-nyckeln är ogiltig eller kvoten är nådd
+            Console.WriteLine("UNSPLASH ERROR: " + ex.Message);
             return "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80";
         }
     }

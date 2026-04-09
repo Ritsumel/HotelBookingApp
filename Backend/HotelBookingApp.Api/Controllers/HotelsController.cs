@@ -18,6 +18,20 @@ public class HotelsController : ControllerBase
     }
 
     [HttpGet]
+<<<<<<< HEAD
+    public IActionResult Get([FromQuery] string? slug)
+    {
+        var query = _context.Hotels
+            .Include(h => h.City)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(slug))
+        {
+            query = query.Where(h => h.UrlSlug == slug);
+        }
+
+        var hotels = query
+=======
     public async Task<IActionResult> GetAll(
         [FromQuery] int? cityId = null,
         [FromQuery] int page = 1,
@@ -33,6 +47,7 @@ public class HotelsController : ControllerBase
         var hotels = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+>>>>>>> origin/main
             .Select(h => new HotelDto
             {
                 Id = h.Id,

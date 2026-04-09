@@ -43,12 +43,14 @@ import {
 import {
   getHotels,
   getCities,
+  getRooms,
   createHotel,
   updateHotel,
   deleteHotel,
   getDashboardStats,
   type Hotel as HotelType,
   type City,
+  type Room,
   type DashboardStats,
 } from '@/lib/hotel-data';
 
@@ -57,18 +59,38 @@ export function AdminDashboard() {
 
   const [hotelList, setHotelList] = useState<HotelType[]>([]);
   const [cityList, setCityList] = useState<City[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [deleteRoomTarget, setDeleteRoomTarget] = useState<Room | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingHotel, setEditingHotel] = useState<HotelType | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<HotelType | null>(null);
   const [expandedHotel, setExpandedHotel] = useState<number | null>(null);
+
+  const [showAddRoomDialog, setShowAddRoomDialog] = useState(false);
+  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
+
+  // pagination + stats (from main)
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalHotels, setTotalHotels] = useState(0);
   const [totalCitiesCount, setTotalCitiesCount] = useState(0);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const pageSize = 10;
+
+  // room form (your logic)
+  const [newRoomForm, setNewRoomForm] = useState({
+    name: '',
+    roomType: '',
+    pricePerNight: '',
+    capacity: '',
+    description: '',
+    imageUrl: '',
+  });
 
   const [newHotel, setNewHotel] = useState({
     name: '',
@@ -96,11 +118,34 @@ export function AdminDashboard() {
     reviewCount: '0',
   });
 
+  // room edit form
+  const [editRoomForm, setEditRoomForm] = useState({
+    name: '',
+    roomType: '',
+    pricePerNight: '',
+    capacity: '',
+    description: '',
+    imageUrl: '',
+  });
+
+  function openEditRoom(room: Room) {
+    setEditingRoom(room);
+
+    setEditRoomForm({
+      name: room.name || '',
+      roomType: room.roomType || '',
+      pricePerNight: String(room.pricePerNight),
+      capacity: String(room.capacity),
+      description: room.description || '',
+      imageUrl: room.imageUrl || '',
+    });
+  }
+
+  // stats (from main)
   const fetchStats = useCallback(async () => {
     try {
       const s = await getDashboardStats();
       setStats(s);
-      // Vi uppdaterar även dessa för att paginationen ska hänga med
       setTotalHotels(s.totalHotels);
       setTotalCitiesCount(s.totalCities);
     } catch (err) {
@@ -265,6 +310,103 @@ export function AdminDashboard() {
       hotel.cityName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  const totalRooms = rooms.length;
+
+  useEffect(() => {
+    getRooms().then(setRooms);
+  }, []);
+
+  async function handleDeleteRoom(roomId: number) {
+    try {
+      await fetch(`http://localhost:8000/api/rooms/${roomId}`, {
+        method: "DELETE",
+      });
+
+      setRooms((prev) => prev.filter((r) => r.id !== roomId));
+    } catch (err) {
+      console.error("Failed to delete room", err);
+    }
+  }
+
+  async function handleEditRoom(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingRoom) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/rooms/${editingRoom.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: editRoomForm.name,
+            roomType: editRoomForm.roomType,
+            pricePerNight: Number(editRoomForm.pricePerNight),
+            capacity: Number(editRoomForm.capacity),
+            description: editRoomForm.description,
+            imageUrl: editRoomForm.imageUrl,
+            hotelId: editingRoom.hotelId,
+            isAvailable: true,
+          }),
+        }
+      );
+
+      const updated = await res.json();
+
+      setRooms(prev =>
+        prev.map(r => (r.id === editingRoom.id ? updated : r))
+      );
+
+      setEditingRoom(null);
+    } catch (err) {
+      console.error("Failed to update room", err);
+    }
+  }
+
+  async function handleAddRoom(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedHotelId) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/api/rooms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newRoomForm.name,
+          roomType: newRoomForm.roomType,
+          pricePerNight: Number(newRoomForm.pricePerNight),
+          capacity: Number(newRoomForm.capacity),
+          description: newRoomForm.description,
+          imageUrl: newRoomForm.imageUrl,
+          hotelId: selectedHotelId,
+          isAvailable: true,
+        }),
+      });
+
+      const created = await res.json();
+
+      setRooms(prev => [...prev, created]);
+
+      setShowAddRoomDialog(false);
+      setSelectedHotelId(null);
+
+      setNewRoomForm({
+        name: '',
+        roomType: '',
+        pricePerNight: '',
+        capacity: '',
+        description: '',
+        imageUrl: '',
+      });
+    } catch (err) {
+      console.error("Failed to add room", err);
+    }
+  }
+
   return (
     <div className='min-h-screen bg-background'>
       {/* Admin header */}
@@ -368,6 +510,7 @@ export function AdminDashboard() {
               )}
             </div>
 
+            {/* Add Hotel-knapp */}
             <Button
               className='gap-2 bg-foreground text-background hover:bg-foreground/90'
               onClick={() => setShowAddDialog(true)}
@@ -408,42 +551,198 @@ export function AdminDashboard() {
               )}
             </div>
           ) : (
-            filteredHotels.map((hotel) => (
-              <article
-                key={hotel.id}
-                className='overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md'
-              >
-                <div className='grid lg:grid-cols-[220px_1fr]'>
-                  <div className='relative aspect-16/10 lg:aspect-auto'>
-                    <Image
-                      src={hotel.image}
-                      alt={`${hotel.name}`}
-                      fill
-                      className='object-cover'
-                    />
-                  </div>
+            filteredHotels.map((hotel) => {
+              const hotelRooms = rooms.filter(
+                (r) => r.hotelId === hotel.id && r.isAvailable
+              );
 
-                  <div className='flex flex-col p-5'>
-                    <div className='flex flex-wrap items-start justify-between gap-3'>
-                      <div className='flex-1'>
-                        <h3 className='font-serif text-lg font-bold text-foreground'>
-                          {hotel.name}
-                        </h3>
-                        <p className='mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground'>
-                          <MapPin className='h-3.5 w-3.5' />
-                          {hotel.cityName} &mdash; {hotel.address}
-                        </p>
+              const lowestPrice =
+                hotelRooms.length > 0
+                  ? Math.min(...hotelRooms.map((r) => r.pricePerNight))
+                  : hotel.pricePerNight;
+
+              return (
+                <article
+                  key={hotel.id}
+                  className='overflow-hidden rounded-xl border border-border bg-card transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:shadow-md'
+                >
+                  <div className='grid lg:grid-cols-[220px_1fr] items-stretch transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]'>
+                    <div className='relative w-full h-[200px] lg:h-auto lg:w-[220px]'>
+                      <Image
+                        src={hotel.image}
+                        alt={hotel.name}
+                        fill
+                        className='object-cover transition-transform duration-300 ease-in-out'
+                      />
+                    </div>
+
+                    <div className='flex flex-col p-5'>
+                      <div className='flex flex-wrap items-start justify-between gap-3'>
+                        <div className='flex-1'>
+                          <h3 className='font-serif text-lg font-bold text-foreground'>
+                            {hotel.name}
+                          </h3>
+                          <p className='mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground'>
+                            <MapPin className='h-3.5 w-3.5' />
+                            {hotel.cityName} &mdash; {hotel.address}
+                          </p>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                          <div className='flex items-center gap-1 rounded-md bg-secondary px-2 py-1'>
+                            <Star className='h-3 w-3 fill-accent text-accent' />
+                            <span className='text-xs font-semibold text-foreground'>
+                              {hotel.rating}
+                            </span>
+                            <span className='text-xs text-muted-foreground'>
+                              ({hotel.reviewCount})
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className='flex items-center gap-2'>
-                        <div className='flex items-center gap-1 rounded-md bg-secondary px-2 py-1'>
-                          <Star className='h-3 w-3 fill-accent text-accent' />
-                          <span className='text-xs font-semibold text-foreground'>
-                            {hotel.rating}
-                          </span>
-                          <span className='text-xs text-muted-foreground'>
-                            ({hotel.reviewCount})
-                          </span>
+                      <p className='mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2'>
+                        {hotel.description}
+                      </p>
+
+                      <div className='mt-3 flex flex-wrap gap-1.5'>
+                        {hotel.amenities.split(', ').map((amenity) => (
+                          <Badge
+                            key={amenity}
+                            variant='secondary'
+                            className='text-xs font-normal'
+                          >
+                            {amenity}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <div className='mt-4 flex items-center justify-between'>
+                        <div className='flex items-center gap-4'>
+                          <p className='text-sm text-muted-foreground'>
+                            <span className='font-semibold text-foreground'>
+                              {hotelRooms.length}
+                            </span>{' '}
+                            room types
+                          </p>
+                          <p className='text-sm text-muted-foreground'>
+                            from{' '}
+                            <span className='font-semibold text-foreground'>
+                              {lowestPrice} kr
+                            </span>
+                            /night
+                          </p>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='gap-1.5'
+                            onClick={() => openEditHotelDialog(hotel)}
+                          >
+                            Edit
+                          </Button>
+
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='gap-1.5 text-muted-foreground'
+                            onClick={() =>
+                              setExpandedHotel(
+                                expandedHotel === hotel.id ? null : hotel.id,
+                              )
+                            }
+                          >
+                            {expandedHotel === hotel.id ? (
+                              <>
+                                <ChevronUp className='h-4 w-4' />
+                                <span className='hidden sm:inline'>Less</span>
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className='h-4 w-4' />
+                                <span className='hidden sm:inline'>Rooms</span>
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive'
+                            onClick={() => setDeleteTarget(hotel)}
+                          >
+                            <Trash2 className='h-4 w-4' />
+                            <span className='hidden sm:inline'>Remove</span>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Expanded room details */}
+                      <div
+                        className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                          expandedHotel === hotel.id
+                            ? 'max-h-[260px] opacity-100 mt-4 pt-4 border-t border-border'
+                            : 'max-h-0 opacity-0 mt-0 pt-0 border-t border-transparent'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto pr-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              Room Types
+                            </p>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-xs transition-colors hover:bg-black hover:text-white"
+                              onClick={() => {
+                                setSelectedHotelId(hotel.id);
+                                setShowAddRoomDialog(true);
+                              }}
+                            >
+                              + Add Room
+                            </Button>
+                          </div>
+
+                          {hotelRooms.length === 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              No rooms yet
+                            </p>
+                          )}
+
+                          {hotelRooms.map((room) => (
+                            <div
+                              key={room.id}
+                              className="flex items-center justify-between rounded-lg bg-background p-3"
+                            >
+                              <div>
+                                <p className="text-sm font-semibold">{room.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {room.roomType} · {room.capacity} guests
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <p className="text-sm font-bold">
+                                  {room.pricePerNight} kr
+                                </p>
+
+                                <Button size="sm" variant="ghost" onClick={() => openEditRoom(room)}>
+                                  Edit
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => setDeleteRoomTarget(room)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -532,9 +831,9 @@ export function AdminDashboard() {
                       </div>
                     )}
                   </div>
-                </div>
-              </article>
-            ))
+                </article>
+              );
+            })
           )}
         </div>
         <PaginationControlled
@@ -708,8 +1007,12 @@ export function AdminDashboard() {
       >
         <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
           <DialogHeader>
-            <DialogTitle className='font-serif text-xl'>Edit Hotel</DialogTitle>
-            <DialogDescription>Update hotel information.</DialogDescription>
+            <DialogTitle className='font-serif text-xl'>
+              Edit Hotel
+            </DialogTitle>
+            <DialogDescription>
+              Update hotel information.
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleEditHotel} className='flex flex-col gap-4'>
@@ -875,6 +1178,221 @@ export function AdminDashboard() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={!!editingRoom}
+        onOpenChange={(open) => {
+          if (!open) setEditingRoom(null);
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl">
+              Edit Room
+            </DialogTitle>
+            <DialogDescription>
+              Update room details.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleEditRoom} className="flex flex-col gap-4">
+
+            {/* NAME */}
+            <div className="flex flex-col gap-1.5">
+              <Label>Room Name</Label>
+              <Input
+                value={editRoomForm.name}
+                onChange={(e) =>
+                  setEditRoomForm({ ...editRoomForm, name: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            {/* TYPE */}
+            <div className="flex flex-col gap-1.5">
+              <Label>Room Type</Label>
+              <Input
+                value={editRoomForm.roomType}
+                onChange={(e) =>
+                  setEditRoomForm({ ...editRoomForm, roomType: e.target.value })
+                }
+              />
+            </div>
+
+            {/* PRICE + CAPACITY */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <Label>Price Per Night</Label>
+                <Input
+                  type="number"
+                  value={editRoomForm.pricePerNight}
+                  onChange={(e) =>
+                    setEditRoomForm({
+                      ...editRoomForm,
+                      pricePerNight: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label>Capacity</Label>
+                <Input
+                  type="number"
+                  value={editRoomForm.capacity}
+                  onChange={(e) =>
+                    setEditRoomForm({
+                      ...editRoomForm,
+                      capacity: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+            </div>
+
+            {/* DESCRIPTION */}
+            <div className="flex flex-col gap-1.5">
+              <Label>Description</Label>
+              <Textarea
+                value={editRoomForm.description}
+                onChange={(e) =>
+                  setEditRoomForm({
+                    ...editRoomForm,
+                    description: e.target.value,
+                  })
+                }
+                rows={3}
+              />
+            </div>
+
+            {/* IMAGE */}
+            <div className="flex flex-col gap-1.5">
+              <Label>Image URL</Label>
+              <Input
+                value={editRoomForm.imageUrl}
+                onChange={(e) =>
+                  setEditRoomForm({
+                    ...editRoomForm,
+                    imageUrl: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            {/* ACTIONS */}
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setEditingRoom(null)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                className="bg-foreground text-background hover:bg-foreground/90"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showAddRoomDialog}
+        onOpenChange={(open) => {
+          setShowAddRoomDialog(open);
+          if (!open) setSelectedHotelId(null);
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Room</DialogTitle>
+            <DialogDescription>
+              Add a new room to this hotel.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddRoom} className="flex flex-col gap-4">
+            <Input
+              placeholder="Room name"
+              value={newRoomForm.name}
+              onChange={(e) =>
+                setNewRoomForm({ ...newRoomForm, name: e.target.value })
+              }
+              required
+            />
+
+            <Input
+              placeholder="Room type"
+              value={newRoomForm.roomType}
+              onChange={(e) =>
+                setNewRoomForm({ ...newRoomForm, roomType: e.target.value })
+              }
+            />
+
+            <Input
+              type="number"
+              placeholder="Price"
+              value={newRoomForm.pricePerNight}
+              onChange={(e) =>
+                setNewRoomForm({
+                  ...newRoomForm,
+                  pricePerNight: e.target.value,
+                })
+              }
+              required
+            />
+
+            <Input
+              type="number"
+              placeholder="Capacity"
+              value={newRoomForm.capacity}
+              onChange={(e) =>
+                setNewRoomForm({
+                  ...newRoomForm,
+                  capacity: e.target.value,
+                })
+              }
+              required
+            />
+
+            <Textarea
+              placeholder="Description"
+              value={newRoomForm.description}
+              onChange={(e) =>
+                setNewRoomForm({
+                  ...newRoomForm,
+                  description: e.target.value,
+                })
+              }
+            />
+
+            <Input
+              placeholder="Image URL"
+              value={newRoomForm.imageUrl}
+              onChange={(e) =>
+                setNewRoomForm({
+                  ...newRoomForm,
+                  imageUrl: e.target.value,
+                })
+              }
+            />
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setShowAddRoomDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Add Room</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!deleteTarget}
@@ -898,6 +1416,39 @@ export function AdminDashboard() {
               onClick={handleDeleteHotel}
             >
               Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!deleteRoomTarget}
+        onOpenChange={(open) => !open && setDeleteRoomTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-serif">
+              Remove Room
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove{" "}
+              <strong>{deleteRoomTarget?.name}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteRoomTarget) {
+                  handleDeleteRoom(deleteRoomTarget.id);
+                  setDeleteRoomTarget(null);
+                }
+              }}
+              className="bg-destructive text-card hover:bg-destructive/90"
+            >
+              Remove Room
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

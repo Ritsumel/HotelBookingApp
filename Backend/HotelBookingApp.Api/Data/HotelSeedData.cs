@@ -1,5 +1,6 @@
 ﻿using Bogus;
 using HotelBookingApp.Api.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace HotelBookingApp.Api.Data;
 
@@ -46,14 +47,14 @@ public static class HotelSeedData
         // Steg 1 — Garantera minst 1 hotell per stad
         foreach (var city in cities)
         {
-            hotels.Add(CreateFakeHotel(city, faker, hotelTypes, descriptions, hotelImageUrls));
+            hotels.Add(await CreateFakeHotel(city, faker, hotelTypes, descriptions, accessKey));
         }
 
         // Steg 2 — Fyll på med 20 extra hotell viktade mot stora städer
         for (int i = 0; i < 20; i++)
         {
             var stad = faker.PickRandom(viktadStadslista);
-            hotels.Add(CreateFakeHotel(stad, faker, hotelTypes, descriptions, hotelImageUrls));
+            hotels.Add(await CreateFakeHotel(stad, faker, hotelTypes, descriptions, accessKey));
         }
 
         context.Hotels.AddRange(hotels);
@@ -63,15 +64,39 @@ public static class HotelSeedData
     }
 
     // En privat hjälpmetod för att slippa duplicera "new Hotel"-koden
-    private static Hotel CreateFakeHotel(City city, Faker faker, string[] types, string[] desc, List<string> images)
+    private static async Task<Hotel> CreateFakeHotel(
+    City city,
+    Faker faker,
+    string[] types,
+    string[] desc,
+    string accessKey)
     {
         var type = faker.PickRandom(types);
+
+        var images = new[]
+        {
+            "https://plus.unsplash.com/premium_photo-1694475362036-7f38f706e271?q=80&w=1464&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1685620557926-4033fec23375?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1646911156886-7b9dad323533?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1696454594065-885c1b8b0902?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1684180448705-a3460688ba1a?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1696454595694-1daa3d983b6a?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1655853116923-eb7758c41522?q=80&w=688&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1751086034153-fa1549875975?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://plus.unsplash.com/premium_photo-1733266895645-83010c8c9f7f?q=80&w=1469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1712393334391-e7bc2a8ab244?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        };
+
+        var image = faker.PickRandom(images);
+
+        Console.WriteLine(image);
+
         return new Hotel
         {
             Name = $"{city.Name} {type}",
             Description = faker.PickRandom(desc),
             PricePerNight = Math.Round(faker.Random.Decimal(500, 4000) / 100) * 100,
-            Image = faker.PickRandom(images),
+            Image = image,
             UrlSlug = SeedHelper.ToSlug($"{city.Name}-{type}-{faker.Random.Int(1, 999)}"),
             CityId = city.Id,
             Address = $"{faker.Address.StreetName()} {faker.Random.Int(1, 99)}",

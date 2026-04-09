@@ -19,6 +19,24 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet]
+<<<<<<< HEAD
+    public IActionResult Get([FromQuery] string? slug)
+    {
+        var query = _context.Cities.AsQueryable();
+
+        if (!string.IsNullOrEmpty(slug))
+        {
+            query = query.Where(c => c.UrlSlug == slug);
+        }
+
+        var result = query.Select(c => new CityDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Image = c.Image,
+            UrlSlug = c.UrlSlug
+        }).ToList();
+=======
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var query = _context.Cities.AsQueryable();
@@ -44,6 +62,7 @@ public class CitiesController : ControllerBase
             Page = page,
             PageSize = pageSize
         };
+>>>>>>> origin/main
 
         return Ok(result);
     }
